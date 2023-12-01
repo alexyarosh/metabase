@@ -24,7 +24,7 @@ type RequestOptions = {
   retryDelayIntervals: number[];
   bodyParamName?: string;
   formData?: boolean;
-  cancelled?: Promise<boolean>;
+  cancelled?: Promise<unknown>;
 };
 
 type RequestMethod = "GET" | "POST" | "PUT" | "DELETE";
@@ -62,7 +62,10 @@ export class Api extends EventEmitter {
     this.PUT = this._makeMethod("PUT", { hasBody: true });
   }
 
-  _makeMethod(method: RequestMethod, creatorOptions: Record<string, any> = {}) {
+  _makeMethod(
+    method: RequestMethod,
+    creatorOptions: Partial<RequestOptions> = {},
+  ) {
     return (urlTemplate: string, methodOptions = {}) => {
       if (typeof methodOptions === "function") {
         methodOptions = { transformResponse: methodOptions };
@@ -74,7 +77,10 @@ export class Api extends EventEmitter {
         ...methodOptions,
       };
 
-      return async (rawData?: any, invocationOptions: any = {}) => {
+      return async (
+        rawData?: any,
+        invocationOptions: Partial<RequestOptions> = {},
+      ) => {
         const options: RequestOptions = {
           ...defaultOptions,
           ...invocationOptions,
