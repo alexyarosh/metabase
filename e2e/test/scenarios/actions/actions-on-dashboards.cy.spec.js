@@ -1063,6 +1063,9 @@ describe(
           idFilter: true,
         });
 
+        cy.wait("@getModel");
+        cy.findByRole("button", { name: "Update" });
+
         filterWidget().click();
         addWidgetStringFilter("5");
 
