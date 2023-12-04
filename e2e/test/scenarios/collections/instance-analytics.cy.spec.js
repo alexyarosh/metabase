@@ -19,6 +19,7 @@ describeEE("scenarios > Metabase Analytics Collection (AuditV2) ", () => {
       cy.intercept("GET", "/api/field/*/values").as("fieldValues");
       cy.intercept("POST", "/api/dataset").as("datasetQuery");
       cy.intercept("POST", "api/card").as("saveCard");
+      cy.intercept("GET", "/api/card/*").as("getCard");
       cy.intercept("POST", "api/dashboard/*/copy").as("copyDashboard");
 
       restore();
@@ -75,7 +76,12 @@ describeEE("scenarios > Metabase Analytics Collection (AuditV2) ", () => {
           expect(response.statusCode).to.eq(200);
         });
 
-        modal().button("Not now").click();
+        cy.wait("@getCard"); // refetch the newly saved card
+
+        modal().within(() => {
+          cy.findByText(/Add this to a dashboard/).should("be.visible");
+          cy.button("Not now").click();
+        });
 
         cy.log("saving copied question");
 
