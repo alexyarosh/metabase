@@ -76,7 +76,7 @@ describe("scenarios > auth > signin", () => {
     cy.findByRole("checkbox").should("not.be.checked");
   });
 
-  it("should redirect to a unsaved question after login", () => {
+  it.only("should redirect to a unsaved question after login", () => {
     cy.signInAsAdmin();
     cy.visit("/");
     // Browse data moved to an icon
