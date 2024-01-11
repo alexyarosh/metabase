@@ -96,4 +96,5 @@ export interface SearchListQuery {
   offset?: number;
   collection?: CollectionId;
   filter_items_in_personal_collection?: "only" | "exclude";
+  namespace?: "snippets"
 }
