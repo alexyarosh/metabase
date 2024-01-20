@@ -393,7 +393,7 @@ function getYAxisExtent(
     : calculateNonStackedExtent(seriesKeys, dataset);
 }
 
-function getYAxisModel(
+export function getYAxisModel(
   seriesKeys: DataKey[],
   dataset: ChartDataset,
   settings: ComputedVisualizationSettings,

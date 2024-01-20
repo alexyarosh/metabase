@@ -29,8 +29,7 @@ import type {
 } from "metabase/visualizations/echarts/types";
 import { dimensionIsTimeseries } from "metabase/visualizations/lib/timeseries";
 import type { TimelineEventsModel } from "metabase/visualizations/echarts/cartesian/timeline-events/types";
-import { getSeriesIdFromECharts } from "metabase/visualizations/echarts/cartesian/utils/id";
-import { checkWaterfallChartModel } from "metabase/visualizations/echarts/cartesian/waterfall/utils";
+
 import { NULL_DISPLAY_VALUE } from "metabase/lib/constants";
 import { isStructured } from "metabase-lib/queries/utils/card";
 import Question from "metabase-lib/Question";
@@ -60,16 +59,11 @@ export const getEventDimensionsData = (
   chartModel: CartesianChartModel,
   seriesIndex: number,
   dataIndex: number,
-  display: CardDisplayType,
 ) => {
   const datum = chartModel.dataset[dataIndex];
   const seriesModel = chartModel.seriesModels[seriesIndex];
 
-  const isWaterfallTotal =
-    display === "waterfall" && dataIndex === chartModel.dataset.length;
-  const dimensionValue = isWaterfallTotal
-    ? null
-    : datum[chartModel.dimensionModel.dataKey];
+  const dimensionValue = datum[chartModel.dimensionModel.dataKey];
 
   const dimensions: ClickObjectDimension[] = [
     {
@@ -95,21 +89,8 @@ export const getEventColumnsData = (
   chartModel: CartesianChartModel,
   seriesIndex: number,
   dataIndex: number,
-  display: CardDisplayType,
 ) => {
   const seriesModel = chartModel.seriesModels[seriesIndex];
-
-  const isWaterfallTotal =
-    display === "waterfall" && dataIndex === chartModel.dataset.length;
-  if (isWaterfallTotal) {
-    return [
-      {
-        key: seriesModel.name,
-        value: checkWaterfallChartModel(chartModel).total,
-        col: seriesModel.column,
-      },
-    ];
-  }
 
   const datum = chartModel.dataset[dataIndex];
   const isBreakoutSeries = "breakoutColumn" in seriesModel;
@@ -224,10 +205,8 @@ export const getSeriesHoverData = (
   chartModel: CartesianChartModel,
   settings: ComputedVisualizationSettings,
   event: EChartsSeriesMouseEvent,
-  display: CardDisplayType,
 ) => {
-  const { dataIndex, seriesId: rawSeriesId } = event;
-  const seriesId = getSeriesIdFromECharts(rawSeriesId, display);
+  const { dataIndex, seriesId } = event;
   const seriesIndex = chartModel.seriesModels.findIndex(
     seriesModel => seriesModel.dataKey === seriesId,
   );
@@ -236,7 +215,7 @@ export const getSeriesHoverData = (
     return;
   }
 
-  const data = getEventColumnsData(chartModel, seriesIndex, dataIndex, display);
+  const data = getEventColumnsData(chartModel, seriesIndex, dataIndex);
   const target = (event.event.event.target ?? undefined) as Element | undefined;
 
   // TODO: For some reason ECharts sometimes trigger series mouse move element with the root SVG as target
@@ -307,10 +286,8 @@ export const getSeriesClickData = (
   chartModel: CartesianChartModel,
   settings: ComputedVisualizationSettings,
   event: EChartsSeriesMouseEvent,
-  display: CardDisplayType,
 ) => {
-  const { seriesId: rawSeriesId, dataIndex } = event;
-  const seriesId = getSeriesIdFromECharts(rawSeriesId, display);
+  const { seriesId, dataIndex } = event;
   const seriesIndex = chartModel.seriesModels.findIndex(
     seriesModel => seriesModel.dataKey === seriesId,
   );
@@ -318,18 +295,17 @@ export const getSeriesClickData = (
     return;
   }
 
-  const data = getEventColumnsData(chartModel, seriesIndex, dataIndex, display);
+  const data = getEventColumnsData(chartModel, seriesIndex, dataIndex);
   const { dimensions, dimensionValue } = getEventDimensionsData(
     chartModel,
     seriesIndex,
     dataIndex,
-    display,
   );
   const column = chartModel.seriesModels[seriesIndex].column;
 
   return {
     event: event.event.event,
-    value: dimensionValue,
+    value: dimensionValue, // TODO: verify is correct, should be metric value?
     column,
     data,
     dimensions,
