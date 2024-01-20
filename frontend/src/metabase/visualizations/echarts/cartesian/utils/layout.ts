@@ -12,6 +12,7 @@ import type {
   ChartMeasurements,
   Padding,
 } from "metabase/visualizations/echarts/cartesian/option/types";
+import { isNotNull } from "metabase/lib/types";
 
 const getYAxisTicksWidth = (
   axisModel: YAxisModel,
@@ -33,16 +34,7 @@ const getYAxisTicksWidth = (
     const customRangeValues = [
       settings["graph.y_axis.min"],
       settings["graph.y_axis.max"],
-    ].filter(value => typeof value === "number");
-
-    valuesToMeasure.push(...customRangeValues);
-  }
-
-  if (!settings["graph.y_axis.auto_range"]) {
-    const customRangeValues = [
-      settings["graph.y_axis.min"],
-      settings["graph.y_axis.max"],
-    ].filter(value => typeof value === "number");
+    ].filter(isNotNull);
 
     valuesToMeasure.push(...customRangeValues);
   }
