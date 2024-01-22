@@ -45,7 +45,6 @@ const DEFAULT_OPTIONS: RequestOptions = {
     .map((_, i) => ONE_SECOND * Math.pow(2, i)),
 };
 
-// @ts-expect-error not sure why TS is sad about this
 export class Api extends EventEmitter {
   basename = "";
 
