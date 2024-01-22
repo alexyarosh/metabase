@@ -1,5 +1,6 @@
 import type {
   AxisFormatter,
+  BaseCartesianChartModel,
   CartesianChartModel,
   YAxisModel,
 } from "metabase/visualizations/echarts/cartesian/model/types";
@@ -13,6 +14,7 @@ import type {
   Padding,
 } from "metabase/visualizations/echarts/cartesian/option/types";
 import { isNotNull } from "metabase/lib/types";
+import { X_AXIS_DATA_KEY } from "metabase/visualizations/echarts/cartesian/constants/dataset";
 
 const getYAxisTicksWidth = (
   axisModel: YAxisModel,
@@ -61,7 +63,7 @@ const getYAxisTicksWidth = (
 };
 
 const getXAxisTicksHeight = (
-  chartModel: CartesianChartModel,
+  chartModel: BaseCartesianChartModel,
   settings: ComputedVisualizationSettings,
   formatter: AxisFormatter,
   renderingContext: RenderingContext,
@@ -77,13 +79,10 @@ const getXAxisTicksHeight = (
   }
 
   const tickWidths = chartModel.dataset.map(datum => {
-    return renderingContext.measureText(
-      formatter(datum[chartModel.dimensionModel.dataKey]),
-      {
-        ...CHART_STYLE.axisTicks,
-        family: renderingContext.fontFamily,
-      },
-    );
+    return renderingContext.measureText(formatter(datum[X_AXIS_DATA_KEY]), {
+      ...CHART_STYLE.axisTicks,
+      family: renderingContext.fontFamily,
+    });
   });
 
   const maxTickWidth = Math.max(...tickWidths);
@@ -102,7 +101,7 @@ const getXAxisTicksHeight = (
 };
 
 export const getTicksDimensions = (
-  chartModel: CartesianChartModel,
+  chartModel: BaseCartesianChartModel,
   settings: ComputedVisualizationSettings,
   hasTimelineEvents: boolean,
   renderingContext: RenderingContext,
@@ -145,7 +144,7 @@ export const getTicksDimensions = (
 };
 
 export const getChartPadding = (
-  chartModel: CartesianChartModel,
+  chartModel: BaseCartesianChartModel,
   settings: ComputedVisualizationSettings,
 ): Padding => {
   const padding: Padding = {
@@ -182,7 +181,7 @@ export const getChartPadding = (
 };
 
 export const getChartMeasurements = (
-  chartModel: CartesianChartModel,
+  chartModel: BaseCartesianChartModel,
   settings: ComputedVisualizationSettings,
   hasTimelineEvents: boolean,
   renderingContext: RenderingContext,

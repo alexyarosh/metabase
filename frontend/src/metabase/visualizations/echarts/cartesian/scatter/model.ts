@@ -3,6 +3,7 @@ import type { CartesianChartColumns } from "metabase/visualizations/lib/graph/co
 
 import type { DataKey } from "../model/types";
 import { getDatasetKey } from "../model/dataset";
+import { X_AXIS_DATA_KEY } from "metabase/visualizations/echarts/cartesian/constants/dataset";
 
 export function getScatterPlotDataset(
   rawSeries: RawSeries,
@@ -29,6 +30,10 @@ export function getScatterPlotDataset(
 
         if (columnIndex === breakoutIndex) {
           return;
+        }
+
+        if (columnIndex === dimensionIndex) {
+          datum[X_AXIS_DATA_KEY] = rowValue;
         }
 
         if (columnIndex === dimensionIndex || breakoutIndex === undefined) {

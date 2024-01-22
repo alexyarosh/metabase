@@ -9,7 +9,6 @@ import type {
 import type {
   CartesianChartModel,
   DataKey,
-  DimensionModel,
   Extent,
   ChartDataset,
   SeriesExtents,
@@ -25,6 +24,7 @@ import { isNotNull } from "metabase/lib/types";
 import {
   NEGATIVE_STACK_TOTAL_DATA_KEY,
   POSITIVE_STACK_TOTAL_DATA_KEY,
+  X_AXIS_DATA_KEY,
 } from "metabase/visualizations/echarts/cartesian/constants/dataset";
 import { isMetric, isNumeric } from "metabase-lib/types/utils/isa";
 
@@ -84,6 +84,7 @@ export const getDatasetKey = (
  * @param {DatasetColumn[]} columns - The columns of the raw dataset.
  * @param {RowValue[]} row - The raw row of values.
  * @param {number} cardId - The ID of the card.
+ * @param dimensionIndex – The index for dimension of a card dataset.
  * @param {number} breakoutIndex - The breakout column index for charts with two dimension columns selected.
  */
 const aggregateColumnValuesForDatum = (
@@ -95,17 +96,17 @@ const aggregateColumnValuesForDatum = (
   breakoutIndex?: number,
 ): void => {
   columns.forEach((column, columnIndex) => {
-    // The dimension values should not be aggregated, only metrics
-    if (columnIndex === dimensionIndex) {
-      return;
-    }
     const rowValue = row[columnIndex];
 
     if (breakoutIndex == null || columnIndex === breakoutIndex) {
+      // The dimension values should not be aggregated, only metrics
       const seriesKey = getDatasetKey(column, cardId);
-      datum[seriesKey] = isMetric(column)
-        ? sumMetric(datum[seriesKey], rowValue)
-        : rowValue;
+      const isUsedAsDimension = dimensionIndex === columnIndex;
+
+      datum[seriesKey] =
+        isMetric(column) && !isUsedAsDimension
+          ? sumMetric(datum[seriesKey], rowValue)
+          : rowValue;
     } else {
       const breakoutValue = row[breakoutIndex];
       const breakoutSeriesKey = getDatasetKey(column, cardId, breakoutValue);
@@ -133,13 +134,6 @@ export const getJoinedCardsDataset = (
   }
 
   const groupedData = new Map<RowValue, Record<DataKey, RowValue>>();
-  const [mainCardColumns] = cardsColumns;
-  const [mainSeries] = rawSeries;
-
-  const dimensionDataKey = getDatasetKey(
-    mainCardColumns.dimension.column,
-    mainSeries.card.id,
-  );
 
   rawSeries.forEach((cardSeries, index) => {
     const {
@@ -157,7 +151,7 @@ export const getJoinedCardsDataset = (
 
       // Get the existing datum by the dimension value if exists
       const datum = groupedData.get(dimensionValue) ?? {
-        [dimensionDataKey]: dimensionValue,
+        [X_AXIS_DATA_KEY]: dimensionValue,
       };
 
       if (!groupedData.has(dimensionValue)) {
@@ -224,14 +218,13 @@ export const computeTotal = (
 
 export const getNormalizedDatasetTransform = (
   seriesDataKeys: DataKey[],
-  dimensionKey: DataKey,
 ): TransformFn => {
   return datum => {
     const total = computeTotal(datum, seriesDataKeys);
 
     // Copy the dimension value
     const normalizedDatum: Record<DataKey, RowValue> = {
-      [dimensionKey]: datum[dimensionKey],
+      [X_AXIS_DATA_KEY]: datum[X_AXIS_DATA_KEY],
     };
 
     // Compute normalized values for metrics
@@ -301,14 +294,12 @@ export const applySquareRootScaling = (value: RowValue): RowValue => {
  * @param {ChartDataset} dataset The dataset to be transformed.
  * @param {SeriesModel[]} seriesModels Array of series models.
  * @param {ComputedVisualizationSettings} settings Computed visualization settings.
- * @param {DimensionModel} dimensionModel The dimension model.
  * @returns {ChartDataset} A transformed dataset.
  */
 export const getTransformedDataset = (
   dataset: ChartDataset,
   seriesModels: SeriesModel[],
   settings: ComputedVisualizationSettings,
-  dimensionModel: DimensionModel,
 ): ChartDataset => {
   const seriesDataKeys = seriesModels.map(seriesModel => seriesModel.dataKey);
 
@@ -316,7 +307,7 @@ export const getTransformedDataset = (
     getNullReplacerTransform(settings, seriesModels),
     {
       condition: settings["stackable.stack_type"] === "normalized",
-      fn: getNormalizedDatasetTransform(seriesDataKeys, dimensionModel.dataKey),
+      fn: getNormalizedDatasetTransform(seriesDataKeys),
     },
     {
       condition: settings["graph.y_axis.scale"] === "pow",
@@ -325,7 +316,7 @@ export const getTransformedDataset = (
     {
       condition: settings["graph.x_axis.scale"] === "pow",
       fn: getKeyBasedDatasetTransform(
-        [dimensionModel.dataKey],
+        [X_AXIS_DATA_KEY],
         applySquareRootScaling,
       ),
     },
@@ -342,13 +333,9 @@ export const getTransformedDataset = (
   ]);
 };
 
-export const sortDataset = (
-  dataset: ChartDataset,
-  dimensionKey: DataKey,
-  xAxisScale?: XAxisScale,
-) => {
+export const sortDataset = (dataset: ChartDataset, xAxisScale?: XAxisScale) => {
   if (xAxisScale === "timeseries") {
-    return sortByDimension(dataset, dimensionKey, (left, right) => {
+    return sortByDimension(dataset, (left, right) => {
       if (typeof left === "string" && typeof right === "string") {
         return dayjs(left).valueOf() - dayjs(right).valueOf();
       }
@@ -357,7 +344,7 @@ export const sortDataset = (
   }
 
   if (xAxisScale !== "ordinal") {
-    return sortByDimension(dataset, dimensionKey, (left, right) => {
+    return sortByDimension(dataset, (left, right) => {
       if (typeof left === "number" && typeof right === "number") {
         return left - right;
       }
@@ -371,17 +358,15 @@ export const sortDataset = (
 /**
  * Sorts a dataset by the specified time-series dimension.
  * @param {Record<DataKey, RowValue>[]} dataset The dataset to be sorted.
- * @param {DataKey} dimensionKey The time-series dimension key.
  * @param compareFn Sort compare function.
  * @returns A sorted dataset.
  */
 const sortByDimension = (
   dataset: Record<DataKey, RowValue>[],
-  dimensionKey: DataKey,
   compareFn: (a: RowValue, b: RowValue) => number,
 ): Record<DataKey, RowValue>[] => {
   return dataset.sort((left, right) => {
-    return compareFn(left[dimensionKey], right[dimensionKey]);
+    return compareFn(left[X_AXIS_DATA_KEY], right[X_AXIS_DATA_KEY]);
   });
 };
 

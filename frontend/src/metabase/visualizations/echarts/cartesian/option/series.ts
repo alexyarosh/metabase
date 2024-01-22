@@ -29,6 +29,7 @@ import type { EChartsSeriesOption } from "metabase/visualizations/echarts/cartes
 import { buildEChartsScatterSeries } from "../scatter/series";
 import { getSeriesYAxisIndex } from "./utils";
 import { buildEChartsWaterfallSeries } from "metabase/visualizations/echarts/cartesian/waterfall/option";
+import { X_AXIS_DATA_KEY } from "metabase/visualizations/echarts/cartesian/constants/dataset";
 
 export const getBarLabelLayout =
   (
@@ -61,6 +62,7 @@ export const getBarLabelLayout =
 export function getDataLabelFormatter(
   seriesModel: SeriesModel,
   settings: ComputedVisualizationSettings,
+  labelDataKey: DataKey,
   renderingContext: RenderingContext,
 ) {
   const valueFormatter = (value: unknown) =>
@@ -72,15 +74,13 @@ export function getDataLabelFormatter(
 
   const valueGetter = getMetricDisplayValueGetter(settings);
 
-  return (datum: CallbackDataParams) => {
-    const dimensionIndex = datum?.encode?.y[0];
-    const dimensionName =
-      dimensionIndex != null ? datum?.dimensionNames?.[dimensionIndex] : null;
-    if (dimensionName == null) {
+  return (params: CallbackDataParams) => {
+    const value = params.data[labelDataKey];
+
+    if (typeof value === undefined) {
       return " ";
     }
-    const value = valueGetter((datum?.value as any)?.[dimensionName]);
-    return valueFormatter(value);
+    return valueFormatter(valueGetter(value));
   };
 }
 
@@ -101,7 +101,12 @@ export const buildEChartsLabelOptions = (
     color: renderingContext.getColor("text-dark"),
     textBorderColor: renderingContext.getColor("white"),
     textBorderWidth: 3,
-    formatter: getDataLabelFormatter(seriesModel, settings, renderingContext),
+    formatter: getDataLabelFormatter(
+      seriesModel,
+      settings,
+      seriesModel.dataKey,
+      renderingContext,
+    ),
   };
 };
 
@@ -109,7 +114,6 @@ const buildEChartsBarSeries = (
   dataset: ChartDataset,
   seriesModel: SeriesModel,
   settings: ComputedVisualizationSettings,
-  dimensionDataKey: string,
   yAxisIndex: number,
   barSeriesCount: number,
   hasMultipleSeries: boolean,
@@ -145,7 +149,7 @@ const buildEChartsBarSeries = (
     barWidth,
     encode: {
       y: seriesModel.dataKey,
-      x: dimensionDataKey,
+      x: X_AXIS_DATA_KEY,
     },
     label: buildEChartsLabelOptions(
       seriesModel,
@@ -192,7 +196,6 @@ const buildEChartsLineAreaSeries = (
   seriesSettings: SeriesSettings,
   dataset: ChartDataset,
   settings: ComputedVisualizationSettings,
-  dimensionDataKey: string,
   yAxisIndex: number,
   hasMultipleSeries: boolean,
   chartWidth: number,
@@ -232,7 +235,7 @@ const buildEChartsLineAreaSeries = (
     areaStyle: display === "area" ? { opacity: 0.3 } : undefined,
     encode: {
       y: seriesModel.dataKey,
-      x: dimensionDataKey,
+      x: X_AXIS_DATA_KEY,
     },
     label: buildEChartsLabelOptions(
       seriesModel,
@@ -280,7 +283,7 @@ const generateStackOption = (
     stack: stackName,
     encode: {
       y: signKey,
-      x: chartModel.dimensionModel.dataKey,
+      x: X_AXIS_DATA_KEY,
     },
     label: {
       ...seriesOptionFromStack.label,
@@ -396,7 +399,6 @@ export const buildEChartsSeries = (
             seriesSettings,
             chartModel.dataset,
             settings,
-            chartModel.dimensionModel.dataKey,
             yAxisIndex,
             hasMultipleSeries,
             chartWidth,
@@ -407,7 +409,6 @@ export const buildEChartsSeries = (
             chartModel.transformedDataset,
             seriesModel,
             settings,
-            chartModel.dimensionModel.dataKey,
             yAxisIndex,
             barSeriesCount,
             hasMultipleSeries,
@@ -417,8 +418,6 @@ export const buildEChartsSeries = (
           return buildEChartsScatterSeries(
             seriesModel,
             chartModel.bubbleSizeDomain,
-            chartModel.dataset,
-            chartModel.dimensionModel.dataKey,
             yAxisIndex,
             renderingContext,
           );
@@ -427,7 +426,6 @@ export const buildEChartsSeries = (
             seriesModel,
             chartModel.transformedDataset,
             settings,
-            chartModel.dimensionModel.dataKey,
             yAxisIndex,
             chartModel.xAxisModel,
             renderingContext,

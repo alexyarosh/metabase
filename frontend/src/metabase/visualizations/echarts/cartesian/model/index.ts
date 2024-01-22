@@ -23,6 +23,7 @@ import {
   getYAxesModels,
 } from "metabase/visualizations/echarts/cartesian/model/axis";
 import { getScatterPlotDataset } from "metabase/visualizations/echarts/cartesian/scatter/model";
+import { X_AXIS_DATA_KEY } from "metabase/visualizations/echarts/cartesian/constants/dataset";
 
 const SUPPORTED_AUTO_SPLIT_TYPES = ["line", "area", "bar", "combo"];
 
@@ -74,7 +75,7 @@ export const getCartesianChartModel = (
   const hasMultipleCards = rawSeries.length > 1;
   const cardsColumns = getCardsColumns(rawSeries, settings);
   const columnByDataKey = getCardsColumnByDataKeyMap(rawSeries, cardsColumns);
-  const dimensionModel = getDimensionModel(rawSeries, cardsColumns);
+  const dimensionModel = getDimensionModel(cardsColumns);
   const unsortedSeriesModels = getCardsSeriesModels(
     rawSeries,
     cardsColumns,
@@ -95,17 +96,12 @@ export const getCartesianChartModel = (
     default:
       dataset = getJoinedCardsDataset(rawSeries, cardsColumns);
   }
-  dataset = sortDataset(
-    dataset,
-    dimensionModel.dataKey,
-    settings["graph.x_axis.scale"],
-  );
+  dataset = sortDataset(dataset, settings["graph.x_axis.scale"]);
 
   const transformedDataset = getTransformedDataset(
     dataset,
     seriesModels,
     settings,
-    dimensionModel,
   );
 
   const isAutoSplitSupported = SUPPORTED_AUTO_SPLIT_TYPES.includes(

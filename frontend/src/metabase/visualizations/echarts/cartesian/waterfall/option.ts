@@ -13,128 +13,138 @@ import { CHART_STYLE } from "metabase/visualizations/echarts/cartesian/constants
 import {
   buildEChartsLabelOptions,
   getBarLabelLayout,
+  getDataLabelFormatter,
 } from "metabase/visualizations/echarts/cartesian/option/series";
-import dayjs from "dayjs";
-
-const getXValuesCount = (
-  dataset: ChartDataset,
-  dimensionDataKey: DataKey,
-  unit: string,
-  settings: ComputedVisualizationSettings,
-) => {
-  if (settings["graph.x_axis.scale"] === "ordinal") {
-    return dataset.length;
-  }
-  return Math.abs(
-    dayjs(dataset[0][dimensionDataKey]).diff(
-      dayjs(dataset[dataset.length - 1][dimensionDataKey]),
-      unit,
-    ),
-  );
-};
+import { X_AXIS_DATA_KEY } from "metabase/visualizations/echarts/cartesian/constants/dataset";
+import {
+  WATERFALL_END_2_KEY,
+  WATERFALL_END_KEY,
+  WATERFALL_START_2_KEY,
+  WATERFALL_START_KEY,
+  WATERFALL_TOTAL_KEY,
+  WATERFALL_VALUE_KEY,
+} from "metabase/visualizations/echarts/cartesian/waterfall/constants";
 
 export const buildEChartsWaterfallSeries = (
   seriesModel: SeriesModel,
   dataset: ChartDataset,
   settings: ComputedVisualizationSettings,
-  dimensionDataKey: string,
   yAxisIndex: number,
   xAxisModel: XAxisModel,
   renderingContext: RenderingContext,
-): (RegisteredSeriesOption["bar"] | RegisteredSeriesOption["custom"])[] => {
-  const xValuesCount = getXValuesCount(
-    dataset,
-    dimensionDataKey,
-    xAxisModel.timeSeriesInterval?.interval,
-    settings,
-  );
-  return [
+): (
+  | RegisteredSeriesOption["bar"]
+  | RegisteredSeriesOption["custom"]
+  | RegisteredSeriesOption["candlestick"]
+)[] => {
+  const labelOption = {
+    ...buildEChartsLabelOptions(seriesModel, settings, renderingContext, true),
+    formatter: getDataLabelFormatter(
+      seriesModel,
+      settings,
+      WATERFALL_VALUE_KEY,
+      renderingContext,
+    ),
+  };
+
+  const series = [
     {
       id: seriesModel.dataKey,
-      emphasis: {
-        focus: "self",
-        itemStyle: {
-          color: seriesModel.color,
-        },
+      type: "candlestick",
+      itemStyle: {
+        color: settings["waterfall.increase_color"],
+        color0: settings["waterfall.decrease_color"],
+        borderColor: settings["waterfall.increase_color"],
+        borderColor0: settings["waterfall.decrease_color"],
       },
-      blur: {
-        label: {
-          show: settings["graph.show_values"],
-        },
-        itemStyle: {
-          opacity: 0.3,
-        },
-      },
-      type: "custom",
-      clip: true,
-      renderItem: (params, api) => {
-        const dataIndex = api.value(0);
-        const barStart = api.value(1);
-        const barEnd = api.value(2);
-        const isTotal = api.value(3);
-
-        const barWidth = (params.coordSys.width / xValuesCount) * 0.7;
-
-        const startCoord = api.coord([dataIndex, barStart]);
-        const endCoord = api.coord([dataIndex, barEnd]);
-        let rectHeight = startCoord[1] - endCoord[1];
-
-        const isIncrease = barEnd >= barStart;
-
-        const style = api.style();
-        if (isTotal) {
-          style.fill = settings["waterfall.total_color"];
-        } else if (isIncrease) {
-          style.fill = settings["waterfall.increase_color"];
-        } else {
-          style.fill = settings["waterfall.decrease_color"];
-        }
-
-        api.font({
-          fontFamily: renderingContext.fontFamily,
-          fontSize: CHART_STYLE.seriesLabels.size,
-          fontWeight: CHART_STYLE.seriesLabels.weight,
-        });
-
-        return {
-          type: "rect",
-          shape: {
-            x: endCoord[0] - barWidth / 2,
-            y: endCoord[1],
-            width: barWidth,
-            height: rectHeight,
-          },
-          style,
-        };
+      dimensions: [
+        X_AXIS_DATA_KEY,
+        WATERFALL_START_KEY,
+        WATERFALL_END_KEY,
+        WATERFALL_START_2_KEY,
+        WATERFALL_END_2_KEY,
+      ],
+      encode: {
+        x: X_AXIS_DATA_KEY,
+        y: [
+          WATERFALL_START_KEY,
+          WATERFALL_END_KEY,
+          WATERFALL_START_2_KEY,
+          WATERFALL_END_2_KEY,
+        ],
       },
       zlevel: CHART_STYLE.series.zIndex,
       yAxisIndex,
-      barGap: 0,
-      dimensions: [dimensionDataKey, "start", "end", "isTotal"],
-      encode: {
-        y: "end",
-        x: dimensionDataKey,
-      },
     },
     {
       id: "waterfall_bar_label",
       type: "bar",
-      zlevel: CHART_STYLE.series.zIndex - 1,
+      zlevel: CHART_STYLE.series.zIndex + 10,
       silent: true,
+      stack: "waterfall",
+      dimensions: [X_AXIS_DATA_KEY, WATERFALL_VALUE_KEY, WATERFALL_END_KEY],
       itemStyle: {
         color: "transparent",
       },
-      labelLayout: getBarLabelLayout(dataset, settings, seriesModel.dataKey),
-      encode: {
-        y: "end",
-        x: dimensionDataKey,
+      emphasis: {
+        itemStyle: undefined,
       },
+      labelLayout: params => {
+        const { dataIndex, rect } = params;
+        if (dataIndex == null) {
+          return {};
+        }
+
+        const datum = dataset[dataIndex];
+        const value = datum[WATERFALL_VALUE_KEY] ?? 0;
+        const end = datum[WATERFALL_END_KEY] ?? 0;
+        const isIncrease = value >= 0;
+
+        const verticalAlignOffset =
+          CHART_STYLE.seriesLabels.size / 2 + CHART_STYLE.seriesLabels.offset;
+
+        const barHeight = rect.height;
+        const endSign = end < 0 ? 1 : -1;
+        let labelOffset = (endSign * barHeight) / 2;
+        labelOffset += isIncrease ? -verticalAlignOffset : verticalAlignOffset;
+
+        return {
+          hideOverlap: settings["graph.label_value_frequency"] === "fit",
+          dy: labelOffset,
+        };
+      },
+      encode: {
+        y: WATERFALL_END_KEY,
+        x: X_AXIS_DATA_KEY,
+      },
+      label: labelOption,
+    },
+  ];
+
+  if (settings["waterfall.show_total"]) {
+    series.push({
+      id: "waterfall_total_label",
+      type: "bar",
+      stack: "waterfall",
+      barWidth: "55%",
+      zlevel: CHART_STYLE.series.zIndex + 10,
+      dimensions: [X_AXIS_DATA_KEY, WATERFALL_TOTAL_KEY],
+      encode: {
+        y: WATERFALL_TOTAL_KEY,
+        x: X_AXIS_DATA_KEY,
+      },
+      itemStyle: {
+        color: settings["waterfall.total_color"],
+      },
+      labelLayout: getBarLabelLayout(dataset, settings, WATERFALL_TOTAL_KEY),
       label: buildEChartsLabelOptions(
         seriesModel,
         settings,
         renderingContext,
         true,
       ),
-    },
-  ];
+    });
+  }
+
+  return series;
 };

@@ -2,7 +2,10 @@ import type { Dayjs, OpUnitType } from "dayjs";
 import dayjs from "dayjs";
 import _ from "underscore";
 import type { RowValue, TimelineEvent } from "metabase-types/api";
-import type { CartesianChartModel } from "metabase/visualizations/echarts/cartesian/model/types";
+import type {
+  BaseCartesianChartModel,
+  ChartDataset,
+} from "metabase/visualizations/echarts/cartesian/model/types";
 import type {
   DateRange,
   TimelineEventGroup,
@@ -14,6 +17,7 @@ import type {
 } from "metabase/visualizations/types";
 import { CHART_STYLE } from "metabase/visualizations/echarts/cartesian/constants/style";
 import type { ChartMeasurements } from "../option/types";
+import { X_AXIS_DATA_KEY } from "metabase/visualizations/echarts/cartesian/constants/dataset";
 
 const tryGetDate = (rowValue: RowValue): Dayjs | null => {
   if (typeof rowValue === "boolean") {
@@ -23,22 +27,14 @@ const tryGetDate = (rowValue: RowValue): Dayjs | null => {
   return date.isValid() ? date : null;
 };
 
-const getDimensionRange = (
-  chartModel: CartesianChartModel,
-): DateRange | null => {
-  const {
-    transformedDataset,
-    dimensionModel: { dataKey: dimensionKey },
-  } = chartModel;
-  if (chartModel.transformedDataset.length === 0) {
+const getXAxisRange = (dataset: ChartDataset): DateRange | null => {
+  if (dataset.length === 0) {
     return null;
   }
 
   // Assume the dataset is sorted
-  const minDate = tryGetDate(transformedDataset[0][dimensionKey]);
-  const maxDate = tryGetDate(
-    transformedDataset[transformedDataset.length - 1][dimensionKey],
-  );
+  const minDate = tryGetDate(dataset[0][X_AXIS_DATA_KEY]);
+  const maxDate = tryGetDate(dataset[dataset.length - 1][X_AXIS_DATA_KEY]);
 
   if (minDate == null || maxDate == null) {
     return null;
@@ -172,7 +168,7 @@ const getTimelineEventsInsideRange = (
 };
 
 export const getTimelineEventsModel = (
-  chartModel: CartesianChartModel,
+  chartModel: BaseCartesianChartModel,
   timelineEvents: TimelineEvent[],
   settings: ComputedVisualizationSettings,
   width: number,
@@ -182,7 +178,7 @@ export const getTimelineEventsModel = (
     return null;
   }
 
-  const dimensionRange = getDimensionRange(chartModel);
+  const dimensionRange = getXAxisRange(chartModel.dataset);
   if (!dimensionRange) {
     return null;
   }

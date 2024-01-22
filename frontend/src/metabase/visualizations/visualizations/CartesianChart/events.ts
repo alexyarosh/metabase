@@ -1,6 +1,6 @@
 import _ from "underscore";
 import type {
-  CartesianChartModel,
+  BaseCartesianChartModel,
   DataKey,
 } from "metabase/visualizations/echarts/cartesian/model/types";
 import type {
@@ -37,6 +37,7 @@ import {
   updateDateTimeFilter,
   updateNumericFilter,
 } from "metabase-lib/queries/utils/actions";
+import { X_AXIS_DATA_KEY } from "metabase/visualizations/echarts/cartesian/constants/dataset";
 
 export const parseDataKey = (dataKey: DataKey) => {
   let cardId: Nullable<CardId> = null;
@@ -56,14 +57,14 @@ export const parseDataKey = (dataKey: DataKey) => {
 };
 
 export const getEventDimensionsData = (
-  chartModel: CartesianChartModel,
+  chartModel: BaseCartesianChartModel,
   seriesIndex: number,
   dataIndex: number,
 ) => {
   const datum = chartModel.dataset[dataIndex];
   const seriesModel = chartModel.seriesModels[seriesIndex];
 
-  const dimensionValue = datum[chartModel.dimensionModel.dataKey];
+  const dimensionValue = datum[X_AXIS_DATA_KEY];
 
   const dimensions: ClickObjectDimension[] = [
     {
@@ -86,7 +87,7 @@ export const getEventDimensionsData = (
 };
 
 export const getEventColumnsData = (
-  chartModel: CartesianChartModel,
+  chartModel: BaseCartesianChartModel,
   seriesIndex: number,
   dataIndex: number,
 ) => {
@@ -97,6 +98,10 @@ export const getEventColumnsData = (
 
   const eventData = getObjectEntries(datum)
     .map(([dataKey, value]) => {
+      if (dataKey === X_AXIS_DATA_KEY) {
+        return null;
+      }
+
       const { cardId, breakoutValue } = parseDataKey(dataKey);
 
       const isSameCard = cardId === seriesModel.cardId;
@@ -129,7 +134,7 @@ export const getEventColumnsData = (
 };
 
 export const getStackedTooltipModel = (
-  chartModel: CartesianChartModel,
+  chartModel: BaseCartesianChartModel,
   settings: ComputedVisualizationSettings,
   seriesIndex: number,
   dataIndex: number,
@@ -160,8 +165,7 @@ export const getStackedTooltipModel = (
     (_row, index) => index === seriesIndex,
   );
 
-  const dimensionValue =
-    chartModel.dataset[dataIndex][chartModel.dimensionModel.dataKey];
+  const dimensionValue = chartModel.dataset[dataIndex][X_AXIS_DATA_KEY];
 
   const headerTitle = String(
     formatValueForTooltip({
@@ -202,7 +206,7 @@ export const canBrush = (
 };
 
 export const getSeriesHoverData = (
-  chartModel: CartesianChartModel,
+  chartModel: BaseCartesianChartModel,
   settings: ComputedVisualizationSettings,
   event: EChartsSeriesMouseEvent,
 ) => {
@@ -283,7 +287,7 @@ export const getTimelineEventsHoverData = (
 };
 
 export const getSeriesClickData = (
-  chartModel: CartesianChartModel,
+  chartModel: BaseCartesianChartModel,
   settings: ComputedVisualizationSettings,
   event: EChartsSeriesMouseEvent,
 ) => {
@@ -315,7 +319,7 @@ export const getSeriesClickData = (
 
 export const getBrushData = (
   rawSeries: RawSeries,
-  chartModel: CartesianChartModel,
+  chartModel: BaseCartesianChartModel,
   event: EChartsSeriesBrushEndEvent,
 ) => {
   const range = event.areas[0].coordRange;
