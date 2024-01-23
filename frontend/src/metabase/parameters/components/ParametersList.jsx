@@ -43,7 +43,7 @@ function ParametersList({
     document.body.classList.add("grabbing");
   };
 
-  const handleSortEnd = async ({ id, newIndex }) => {
+  const handleSortEnd = ({ id, newIndex }) => {
     document.body.classList.remove("grabbing");
     if (setParameterIndex) {
       setParameterIndex(id, newIndex);
