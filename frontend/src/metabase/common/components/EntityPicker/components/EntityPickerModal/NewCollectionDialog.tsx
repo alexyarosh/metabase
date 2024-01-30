@@ -44,7 +44,7 @@ export const NewCollectionDialog = ({
             <FormTextInput
               name="name"
               label={t`Name of new folder inside "${parentCollection?.name}"`}
-              placeholder={t`Johnny`}
+              placeholder={t`My new collection`}
               mb="1rem"
             />
             <FormFooter>
