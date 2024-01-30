@@ -1,8 +1,11 @@
 import { useEffect, useState } from "react";
 import { t } from "ttag";
-import type { Collection, CollectionId } from "metabase-types/api";
+import type { Collection, CollectionId, CollectionItem } from "metabase-types/api";
 
 import { useCollectionQuery } from "metabase/common/hooks";
+import { isRootCollection } from "metabase/collections/utils";
+import { useSelector } from "metabase/lib/redux";
+import { getUserIsAdmin } from "metabase/selectors/user";
 import { LoadingSpinner, NestedItemPicker } from "../components";
 import type { PickerState, PickerItem } from "../types";
 
@@ -38,9 +41,11 @@ const CollectionPickerComponent = ({
   const { data: currentCollection, isLoading: loadingCurrentCollection } =
     useCollectionQuery({ id: value?.id, enabled: !!value?.id });
 
+  const isAdmin = useSelector(getUserIsAdmin);
+
   const onFolderSelect = ({ folder }: { folder: PickerItem }) => {
     const newPath = getStateFromIdPath({
-      idPath: getCollectionIdPath(folder),
+      idPath: getCollectionIdPath(folder, isAdmin),
       namespace: options.namespace,
     });
     setPath(newPath);
@@ -55,7 +60,7 @@ const CollectionPickerComponent = ({
             id: currentCollection.id,
             location: currentCollection.location,
             is_personal: currentCollection.is_personal,
-          }),
+          }, isAdmin),
           namespace: options.namespace,
         });
 
@@ -68,6 +73,7 @@ const CollectionPickerComponent = ({
       currentCollection?.location,
       currentCollection?.is_personal,
       options.namespace,
+      isAdmin,
     ],
   );
 
@@ -92,21 +98,29 @@ export const CollectionPicker = Object.assign(
   {
     displayName: t`Collection`,
     model: 'collection',
+    icon: 'folder',
   },
 );
 
 const getCollectionIdPath = (
-  collection: Pick<Collection, "id" | "location" | "is_personal">,
+  collection: Pick<CollectionItem, "id" | "ui-logical-location" | "is_personal">,
+  isAdmin: boolean,
 ): CollectionId[] => {
   const pathFromRoot =
-    collection?.location?.split("/").filter(Boolean).map(Number) ?? [];
+    collection?.['ui-logical-location']?.split("/").filter(Boolean).map(Number) ?? [];
 
-  const path =
-    collection.is_personal || collection.id === "root"
-      ? [null, ...pathFromRoot, collection.id]
-      : [null, "root", ...pathFromRoot, collection.id];
+  if (collection.is_personal) {
+    return isAdmin
+      ? ["personal", ...pathFromRoot, collection.id]
+      : [...pathFromRoot, collection.id];
+  }
 
-  return path as CollectionId[];
+  if (isRootCollection(collection)) {
+    return ["root"];
+  }
+
+  return ["root", ...pathFromRoot, collection.id];
+
 };
 
 const getStateFromIdPath = ({

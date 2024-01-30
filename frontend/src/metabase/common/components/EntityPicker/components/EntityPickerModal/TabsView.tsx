@@ -1,3 +1,4 @@
+import type { IconName } from "metabase/ui";
 import { Tabs, Icon } from "metabase/ui";
 import type { SearchResult } from "metabase-types/api";
 
@@ -6,10 +7,7 @@ import {
   EntityPickerSearchResults,
 } from "../EntityPickerSearch";
 
-import { tabOptions } from "../../utils";
-import type { EntityPickerOptions } from "../../types";
-
-type ValidTab = keyof typeof tabOptions;
+import type { EntityPickerOptions, EntityTab, PickerItem } from "../../types";
 
 export const TabsView = ({
   tabs,
@@ -20,20 +18,20 @@ export const TabsView = ({
   searchResults,
   selectedItem,
 }: {
-  tabs: ValidTab[];
-  onItemSelect: (item: SearchResult) => void;
-  value?: Partial<SearchResult>;
+  tabs: EntityTab[];
+  onItemSelect: (item: PickerItem) => void;
+  value?: PickerItem;
   options: EntityPickerOptions;
   searchQuery: string;
-  searchResults: SearchResult[] | null;
-  selectedItem: SearchResult | null;
+  searchResults: PickerItem[] | null;
+  selectedItem: PickerItem | null;
 }) => {
   const hasSearchTab = !!searchQuery;
-  const defaultTab = hasSearchTab ? "search" : tabs[0];
+  const defaultTab = hasSearchTab ? { model: "search" } : tabs[0];
 
   return (
     <Tabs
-      defaultValue={defaultTab}
+      defaultValue={defaultTab.model}
       style={{
         flexGrow: 1,
         height: 0,
@@ -42,16 +40,16 @@ export const TabsView = ({
       }}
     >
       <Tabs.List px="md">
-        {tabs.map(tabName => {
-          const { label } = tabOptions[tabName];
+        {tabs.map(tab => {
+          const { name, icon, displayName } = tab;
 
           return (
             <Tabs.Tab
-              key={tabName}
-              value={tabName}
-              icon={<Icon name={tabName} />}
+              key={name}
+              value={name}
+              icon={<Icon name={icon} />}
             >
-              {label}
+              {displayName}
             </Tabs.Tab>
           );
         })}
@@ -63,19 +61,19 @@ export const TabsView = ({
         )}
       </Tabs.List>
 
-      {tabs.map(tabName => {
-        const { component: TabComponent } = tabOptions[tabName];
+      {tabs.map(Tab => {
+        const { name } = Tab;
 
         return (
           <Tabs.Panel
-            key={tabName}
-            value={tabName}
+            key={name}
+            value={name}
             style={{
               flexGrow: 1,
               height: 0,
             }}
           >
-            <TabComponent
+            <Tab
               onItemSelect={onItemSelect}
               value={value}
               options={options}

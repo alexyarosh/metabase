@@ -2,11 +2,11 @@ import type { HTMLAttributes } from "react";
 import { useState, useRef } from "react";
 import { t } from "ttag";
 import { useField } from "formik";
+import { Button, Icon } from "metabase/ui";
 
 import { useUniqueId } from "metabase/hooks/use-unique-id";
 
 import FormField from "metabase/core/components/FormField";
-import SelectButton from "metabase/core/components/SelectButton";
 import Collections from "metabase/entities/collections";
 
 import CollectionName from "metabase/containers/CollectionName";
@@ -89,13 +89,18 @@ function FormCollectionPicker({
         error={touched ? error : undefined}
         ref={formFieldRef}
       >
-        <SelectButton onClick={() => setIsPickerOpen(true)}>
+        <Button
+          onClick={() => setIsPickerOpen(true)}
+          fullWidth
+          rightIcon={<Icon name="ellipsis" />}
+          styles={{ inner: { justifyContent: "space-between" } }}
+        >
           {isValidCollectionId(value) ? (
             <ItemName id={value} type={type} />
           ) : (
             placeholder
           )}
-        </SelectButton>
+        </Button>
       </FormField>
       {isPickerOpen && (
         <CollectionPickerModal

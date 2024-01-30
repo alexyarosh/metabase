@@ -84,6 +84,9 @@ export interface CollectionItem {
   moderated_status?: string;
   type?: string;
   can_write?: boolean;
+  location?: string;
+  is_personal?: boolean; // TODO: need this from backend
+  'ui-logical-location'?: string; // location with only user-accessible collections
   getIcon: () => { name: IconName };
   getUrl: (opts?: Record<string, unknown>) => string;
   setArchived?: (isArchived: boolean) => void;

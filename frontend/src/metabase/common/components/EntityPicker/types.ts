@@ -1,4 +1,5 @@
 import type { SearchResult, SearchListQuery } from "metabase-types/api";
+import type { IconName } from "metabase/ui";
 import type { CollectionPickerOptions } from "./SpecificEntityPickers/CollectionPicker";
 import type { EntityPickerModalOptions } from "./components/EntityPickerModal";
 
@@ -23,5 +24,9 @@ export type EntityTab = React.FC<{
   onItemSelect: (item: PickerItem) => void;
   value?: PickerItem;
   options?: EntityPickerOptions;
-}> & { displayName: string; model: string };
+}> & {
+  displayName: string;
+  model: string;
+  icon: IconName;
+};
 
