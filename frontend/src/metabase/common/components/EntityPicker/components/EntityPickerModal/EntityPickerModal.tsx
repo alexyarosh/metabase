@@ -6,7 +6,6 @@ import ErrorBoundary from "metabase/ErrorBoundary";
 import type { SearchResult } from "metabase-types/api";
 import { useModalOpen } from "metabase/hooks/use-modal-open";
 
-import type { Model } from "metabase/collections/components/PinnedItemCard/PinnedItemCard.stories";
 import type { EntityPickerOptions, EntityTab } from "../../types";
 import { EntityPickerSearchInput } from "../EntityPickerSearch/EntityPickerSearch";
 
@@ -74,7 +73,6 @@ export function EntityPickerModal({
   };
 
   const hasTabs = tabs.length > 1 || searchQuery;
-  const tabNames = useMemo(() => tabs.map(t => t.displayName), [tabs]);
   const tabModels = useMemo(() => tabs.map(t => t.model), [tabs]);
 
   return (
@@ -136,7 +134,6 @@ export function EntityPickerModal({
     </Modal.Root>
   );
 }
-
 
 export const CollectionPickerModal = ({
   title = t`Choose a collection`,
