@@ -1,6 +1,4 @@
-import type { IconName } from "metabase/ui";
 import { Tabs, Icon } from "metabase/ui";
-import type { SearchResult } from "metabase-types/api";
 
 import {
   EntityPickerSearchTab,
@@ -44,11 +42,7 @@ export const TabsView = ({
           const { name, icon, displayName } = tab;
 
           return (
-            <Tabs.Tab
-              key={name}
-              value={name}
-              icon={<Icon name={icon} />}
-            >
+            <Tabs.Tab key={name} value={name} icon={<Icon name={icon} />}>
               {displayName}
             </Tabs.Tab>
           );
@@ -73,11 +67,7 @@ export const TabsView = ({
               height: 0,
             }}
           >
-            <Tab
-              onItemSelect={onItemSelect}
-              value={value}
-              options={options}
-            />
+            <Tab onItemSelect={onItemSelect} value={value} options={options} />
           </Tabs.Panel>
         );
       })}

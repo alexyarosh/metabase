@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { t } from "ttag";
-import type { Collection, CollectionId, CollectionItem } from "metabase-types/api";
+import type { CollectionId, CollectionItem } from "metabase-types/api";
 
 import { useCollectionQuery } from "metabase/common/hooks";
 import { isRootCollection } from "metabase/collections/utils";
@@ -56,11 +56,14 @@ const CollectionPickerComponent = ({
     function setInitialPath() {
       if (currentCollection?.id) {
         const newPath = getStateFromIdPath({
-          idPath: getCollectionIdPath({
-            id: currentCollection.id,
-            location: currentCollection.location,
-            is_personal: currentCollection.is_personal,
-          }, isAdmin),
+          idPath: getCollectionIdPath(
+            {
+              id: currentCollection.id,
+              location: currentCollection.location,
+              is_personal: currentCollection.is_personal,
+            },
+            isAdmin,
+          ),
           namespace: options.namespace,
         });
 
@@ -93,21 +96,24 @@ const CollectionPickerComponent = ({
   );
 };
 
-export const CollectionPicker = Object.assign(
-  CollectionPickerComponent,
-  {
-    displayName: t`Collection`,
-    model: 'collection',
-    icon: 'folder',
-  },
-);
+export const CollectionPicker = Object.assign(CollectionPickerComponent, {
+  displayName: t`Collection`,
+  model: "collection",
+  icon: "folder",
+});
 
 const getCollectionIdPath = (
-  collection: Pick<CollectionItem, "id" | "ui-logical-location" | "is_personal">,
+  collection: Pick<
+    CollectionItem,
+    "id" | "ui-logical-location" | "is_personal"
+  >,
   isAdmin: boolean,
 ): CollectionId[] => {
   const pathFromRoot =
-    collection?.['ui-logical-location']?.split("/").filter(Boolean).map(Number) ?? [];
+    collection?.["ui-logical-location"]
+      ?.split("/")
+      .filter(Boolean)
+      .map(Number) ?? [];
 
   if (collection.is_personal) {
     return isAdmin
@@ -120,7 +126,6 @@ const getCollectionIdPath = (
   }
 
   return ["root", ...pathFromRoot, collection.id];
-
 };
 
 const getStateFromIdPath = ({
@@ -131,19 +136,20 @@ const getStateFromIdPath = ({
   namespace?: "snippets";
 }): PickerState<PickerItem> => {
   // TODO: handle collections buried in another user's personal collection 😱
-  return idPath.map((id, index) => {
+
+  const statePath: PickerState<PickerItem> = [
+    {
+      selectedItem: {
+        model: "collection",
+        id: idPath[0],
+      },
+    },
+  ];
+
+  idPath.forEach((id, index) => {
     const nextLevelId = idPath[index + 1] ?? null;
 
-    if (index === 0) {
-      return {
-        selectedItem: {
-          model: "collection",
-          id: nextLevelId,
-        },
-      };
-    }
-
-    return {
+    statePath.push({
       query: {
         collection: id,
         models: ["collection"],
@@ -152,6 +158,8 @@ const getStateFromIdPath = ({
       selectedItem: nextLevelId
         ? { model: "collection", id: nextLevelId }
         : null,
-    };
+    });
   });
+
+  return statePath;
 };
