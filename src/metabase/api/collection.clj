@@ -523,6 +523,7 @@
                       :description
                       :entity_id
                       :personal_owner_id
+                      :location
                       [(h2x/literal "collection") :model]
                       :authority_level])
       ;; the nil indicates that collections are never pinned.
@@ -538,7 +539,13 @@
             (if personal_owner_id
               ;; when fetching root collection, we might have personal collection
               (assoc row :name (collection/user->personal-collection-name (:personal_owner_id row) :user))
-              (dissoc row :personal_owner_id)))]
+              (dissoc row :personal_owner_id)))
+          (add-ui-location [{:keys [location] :as collection}]
+            (let [ui-location (->> location
+                                   collection/location-path->ids
+                                   (filter #(mi/can-read? Collection %))
+                                   (apply collection/location-path))]
+              (assoc collection :ui-logical-location ui-location)))]
     (for [row rows]
       ;; Go through this rigamarole instead of hydration because we
       ;; don't get models back from ulterior over-query
@@ -546,6 +553,7 @@
       ;; However, this was only tested on H2 and Postgres
       (-> row
           (assoc :can_write (mi/can-write? Collection (:id row)))
+          (add-ui-location)
           (dissoc :collection_position :display :moderated_status :icon
                   :collection_preview :dataset_query :table_id :query_type :is_upload)
           update-personal-collection))))
@@ -607,7 +615,7 @@
   are optional (not id, but last_edit_user for example) must have a type so that the union-all can unify the nil with
   the correct column type."
   [:id :name :description :entity_id :display [:collection_preview :boolean] :dataset_query
-   :model :collection_position :authority_level [:personal_owner_id :integer]
+   :model :collection_position :authority_level [:personal_owner_id :integer] :location
    :last_edit_email :last_edit_first_name :last_edit_last_name :moderated_status :icon
    [:last_edit_user :integer] [:last_edit_timestamp :timestamp] [:database_id :integer]
    ;; for determining whether a model is based on a csv-uploaded table
