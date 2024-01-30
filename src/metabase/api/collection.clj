@@ -174,7 +174,7 @@
                           :here     #{:dataset}
                           :children [{:name \"E\"}]}
                          {:name     \"F\"
-                          :here     #{:card}
+                          :here     #{:card} 
                           :children [{:name \"G\"}]}]}]}
   {:name \"H\"}]
   ```
