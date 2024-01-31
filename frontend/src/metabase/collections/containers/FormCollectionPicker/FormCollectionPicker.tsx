@@ -90,6 +90,7 @@ function FormCollectionPicker({
         ref={formFieldRef}
       >
         <Button
+          data-testid="collection-picker-button"
           onClick={() => setIsPickerOpen(true)}
           fullWidth
           rightIcon={<Icon name="ellipsis" />}
