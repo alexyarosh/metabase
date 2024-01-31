@@ -5,7 +5,8 @@ import type { CollectionId, CollectionItem } from "metabase-types/api";
 import { useCollectionQuery } from "metabase/common/hooks";
 import { isRootCollection } from "metabase/collections/utils";
 import { useSelector } from "metabase/lib/redux";
-import { getUserIsAdmin } from "metabase/selectors/user";
+import { getUserPersonalCollectionId } from "metabase/selectors/user";
+import { PERSONAL_COLLECTIONS } from "metabase/entities/collections";
 import { LoadingSpinner, NestedItemPicker } from "../components";
 import type { PickerState, PickerItem } from "../types";
 
@@ -41,11 +42,11 @@ const CollectionPickerComponent = ({
   const { data: currentCollection, isLoading: loadingCurrentCollection } =
     useCollectionQuery({ id: value?.id, enabled: !!value?.id });
 
-  const isAdmin = useSelector(getUserIsAdmin);
+  const userPersonalCollectionId = useSelector(getUserPersonalCollectionId);
 
   const onFolderSelect = ({ folder }: { folder: PickerItem }) => {
     const newPath = getStateFromIdPath({
-      idPath: getCollectionIdPath(folder, isAdmin),
+      idPath: getCollectionIdPath(folder, userPersonalCollectionId),
       namespace: options.namespace,
     });
     setPath(newPath);
@@ -62,7 +63,7 @@ const CollectionPickerComponent = ({
               location: currentCollection.location,
               is_personal: currentCollection.is_personal,
             },
-            isAdmin,
+            userPersonalCollectionId,
           ),
           namespace: options.namespace,
         });
@@ -76,7 +77,7 @@ const CollectionPickerComponent = ({
       currentCollection?.location,
       currentCollection?.is_personal,
       options.namespace,
-      isAdmin,
+      userPersonalCollectionId,
     ],
   );
 
@@ -103,20 +104,33 @@ export const CollectionPicker = Object.assign(CollectionPickerComponent, {
 });
 
 const getCollectionIdPath = (
-  collection: Pick<CollectionItem, "id" | "effective_location" | "is_personal">,
-  isAdmin: boolean,
+  collection: Pick<
+    CollectionItem,
+    "id" | "effective_location" | "is_personal" | "location"
+  >,
+  userPersonalCollectionId?: CollectionId,
 ): CollectionId[] => {
-  const location = collection?.effective_location;
-  const pathFromRoot = location?.split("/").filter(Boolean).map(Number) ?? [];
+  const location = collection?.effective_location ?? collection?.location;
+  const pathFromRoot: CollectionId[] =
+    location?.split("/").filter(Boolean).map(Number) ?? [];
 
-  if (collection.is_personal) {
-    return isAdmin
-      ? ["personal", ...pathFromRoot, collection.id]
-      : [...pathFromRoot, collection.id];
-  }
+  const isInUserPersonalCollection =
+    userPersonalCollectionId &&
+    (collection.id === userPersonalCollectionId ||
+      pathFromRoot.includes(userPersonalCollectionId));
 
   if (isRootCollection(collection)) {
     return ["root"];
+  }
+
+  if (collection.id === PERSONAL_COLLECTIONS.id) {
+    return ["personal"];
+  }
+
+  if (collection.is_personal) {
+    return isInUserPersonalCollection
+      ? [...pathFromRoot, collection.id]
+      : ["personal", ...pathFromRoot, collection.id];
   }
 
   return ["root", ...pathFromRoot, collection.id];
