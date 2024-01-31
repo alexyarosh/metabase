@@ -1,3 +1,4 @@
+import type React from "react";
 import { useEffect, useRef } from "react";
 import { usePrevious } from "react-use";
 import { HorizontalScrollBox } from "./NestedItemPicker.styled";
@@ -26,7 +27,13 @@ const scrollAllTheWay = (container: HTMLDivElement | null) => {
   }
 };
 
-export const AutoScrollBox = ({ children }: { children: React.ReactNode }) => {
+export const AutoScrollBox = ({
+  children,
+  ...props
+}: {
+  children: React.ReactNode;
+  props?: React.HTMLAttributes<HTMLDivElement>;
+}) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const containerWidth = containerRef.current?.scrollWidth;
   const previousContainerWidth = usePrevious(containerWidth);
@@ -44,7 +51,7 @@ export const AutoScrollBox = ({ children }: { children: React.ReactNode }) => {
   }, [containerWidth, previousContainerWidth]);
 
   return (
-    <HorizontalScrollBox h="100%" ref={containerRef}>
+    <HorizontalScrollBox h="100%" ref={containerRef} {...props}>
       {children}
     </HorizontalScrollBox>
   );

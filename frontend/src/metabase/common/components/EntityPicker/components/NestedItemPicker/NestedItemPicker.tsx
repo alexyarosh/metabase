@@ -40,13 +40,16 @@ export const NestedItemPicker = ({
   };
 
   return (
-    <AutoScrollBox>
+    <AutoScrollBox data-testid="nested-item-picker">
       <Flex h="100%" w="fit-content">
-        {path.map(level => {
+        {path.map((level, index) => {
           const { query, selectedItem } = level;
 
           return (
-            <ListBox key={JSON.stringify(query ?? "root").slice(0, 255)}>
+            <ListBox
+              key={JSON.stringify(query ?? "root").slice(0, 255)}
+              data-testid={`item-picker-level-${index}`}
+            >
               <ErrorBoundary>
                 <ListComponent
                   query={query}

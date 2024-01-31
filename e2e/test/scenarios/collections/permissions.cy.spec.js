@@ -25,6 +25,7 @@ const PERMISSIONS = {
 
 describe("collection permissions", () => {
   beforeEach(() => {
+    cy.intercept("GET", "/api/search*").as("search");
     restore();
   });
 
@@ -406,15 +407,15 @@ describe("collection permissions", () => {
                   ).click();
                 });
 
-                popover().within(() => {
-                  cy.findByText("My personal collection");
+                cy.findByLabelText("Select a collection").within(() => {
+                  cy.findByText("Read Only Tableton's Personal Collection");
                   // Test will fail on this step first
                   cy.findByText("First collection").should("not.exist");
                   // This is the second step that makes sure not even search returns collections with read-only access
-                  cy.icon("search").click();
-                  cy.findByPlaceholderText("Search")
-                    .click()
-                    .type("third{Enter}");
+                  cy.findByPlaceholderText("Search…").type("third{Enter}");
+
+                  cy.wait("@search");
+                  cy.findByText(/Loading/i).should("not.exist");
                   cy.findByText("Third collection").should("not.exist");
                 });
               });

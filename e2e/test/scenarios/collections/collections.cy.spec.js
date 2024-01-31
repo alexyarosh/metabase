@@ -13,6 +13,7 @@ import {
   openUnpinnedItemMenu,
   getPinnedSection,
   moveOpenedCollectionTo,
+  pickEntity,
 } from "e2e/support/helpers";
 import { USERS, USER_GROUPS } from "e2e/support/cypress_data";
 import {
@@ -60,12 +61,12 @@ describe("scenarios > collection defaults", () => {
         cy.findByText("Our analytics").click();
       });
 
-      popover().within(() => {
-        cy.findByText(`Collection ${COLLECTIONS_COUNT}`).click();
+      pickEntity({
+        path: ["Our analytics", `Collection ${COLLECTIONS_COUNT}`],
+        select: true,
       });
 
-      // eslint-disable-next-line no-unscoped-text-selectors -- deprecated usage
-      cy.findByText("Create").click();
+      modal().button("Create").click();
 
       cy.findByTestId("collection-name-heading").should(
         "have.text",
