@@ -7,6 +7,7 @@
   (:require
    [compojure.core :as compojure]
    [metabase-enterprise.advanced-config.api.logs :as logs]
+   [metabase-enterprise.advanced-config.caching :as caching]
    [metabase-enterprise.advanced-permissions.api.routes
     :as advanced-permissions]
    [metabase-enterprise.api.routes.common :as ee.api.common]
@@ -39,4 +40,7 @@
     (ee.api.common/+require-premium-feature :audit-app (deferred-tru "Audit app") logs/routes))
    (compojure/context
     "/serialization" []
-    (ee.api.common/+require-premium-feature :serialization (deferred-tru "Serialization") api.serialization/routes))))
+    (ee.api.common/+require-premium-feature :serialization (deferred-tru "Serialization") api.serialization/routes))
+   (compojure/context
+    "/caching" []
+    (ee.api.common/+require-premium-feature :cache-granular-controls (deferred-tru "Caching") caching/routes))))

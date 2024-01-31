@@ -5281,6 +5281,91 @@ databaseChangeLog:
         - dbms:
             type: mysql,mariadb
 
+  - changeSet:
+      id: v49.2024-01-19T16:00:00
+      author: piranha
+      comment: 'Effective caching #36847'
+      changes:
+        - createTable:
+            tableName: cache_config
+            remarks: Cache configuration
+            columns:
+              - column:
+                  name: id
+                  type: int
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: model
+                  type: varchar(32)
+                  constraints:
+                    nullable: true
+              - column:
+                  name: model_id
+                  type: int
+                  constraints:
+                    nullable: true
+              - column:
+                  name: collection_id
+                  type: int
+                  constraints:
+                    nullable: true
+                    referencedTableName: collection
+                    referencedColumnNames: id
+                    foreignKeyName: fk_cache_config_ref_collection_id
+                    deleteCascade: true
+              - column:
+                  name: strategy
+                  type: text
+                  constraints:
+                    nullable: false
+              - column:
+                  name: config
+                  type: text
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: ${timestamp_type}
+                  defaultValueComputed: current_timestamp
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: ${timestamp_type}
+                  defaultValueComputed: current_timestamp
+                  constraints:
+                    nullable: false
+
+  - changeSet:
+      id: v49.2024-01-19T16:00:01
+      author: piranha
+      comment: 'Effective caching #36847'
+      changes:
+        - addUniqueConstraint:
+            tableName: cache_config
+            constraintName: idx_cache_config_unique_model
+            columnNames: model, model_id
+      rollback:
+        - dropUniqueConstraint:
+            tableName: cache_config
+            constraintName: idx_cache_config_unique_model
+
+  - changeSet:
+      id: v49.2024-01-19T16:00:02
+      author: piranha
+      comment: 'Effective caching #36847'
+      changes:
+        - addColumn:
+            tableName: query_cache
+            columns:
+              - column:
+                  remarks: Value for to check for "query change" caching strategy
+                  name: mark
+                  type: text
+
   # >>>>>>>>>> DO NOT ADD NEW MIGRATIONS BELOW THIS LINE! ADD THEM ABOVE <<<<<<<<<<
 
 ########################################################################################################################

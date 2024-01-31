@@ -2,6 +2,7 @@
   (:require
    [clojure.test :refer :all]
    [java-time.api :as t]
+   [metabase-enterprise.advanced-config.caching :as caching]
    [metabase.models :refer [Card Dashboard Database PersistedInfo TaskHistory]]
    [metabase.public-settings :as public-settings]
    [metabase.query-processor.card :as qp.card]
@@ -154,3 +155,101 @@
                             (t2/select-one TaskHistory
                                            :task "unpersist-tables"
                                            {:order-by [[:id :desc]]}))))))))))
+
+(deftest cache-config-test
+  (testing "Caching requires premium token with `:caching`"
+    (mt/with-premium-features #{}
+      (is (= "Caching is a paid feature not currently available to your instance. Please upgrade to use it. Learn more at metabase.com/upgrade/"
+             (mt/user-http-request :crowberto :get 402 "ee/caching/")))))
+  (testing "Caching API"
+    (mt/with-premium-features #{:cache-granular-controls}
+      (mt/with-empty-h2-app-db
+        (mt/with-temp [:model/Database      db     {}
+                       :model/Collection    col1   {}
+                       :model/Collection    col2   {:location (format "/%s/" (:id col1))}
+                       :model/Collection    col3   {}
+                       :model/Dashboard     dash   {:collection_id (:id col1)}
+                       :model/Card          card1  {:database_id   (:id db)
+                                                    :collection_id (:id col1)}
+                       :model/Card          card2  {:database_id   (:id db)
+                                                    :collection_id (:id col1)}
+                       :model/Card          card3  {:database_id   (:id db)
+                                                    :collection_id (:id col2)}
+                       :model/Card          card4  {:database_id   (:id db)
+                                                    :collection_id (:id col3)}
+                       :model/Card          card5  {:collection_id (:id col3)}]
+
+          (testing "Can configure root"
+            (is (nil? (mt/user-http-request :crowberto :put 204 "ee/caching/"
+                                            {:model    "root"
+                                             :model_id 0
+                                             :strategy {:type "nocache" :name "root"}})))
+            (is (=? {:items [{:model "root" :model_id 0}]}
+                    (mt/user-http-request :crowberto :get 200 "ee/caching/"))))
+
+          (testing "Can configure others"
+            (is (nil? (mt/user-http-request :crowberto :put 204 "ee/caching/"
+                                            {:model    "database"
+                                             :model_id (:id db)
+                                             :strategy {:type "nocache" :name "db"}})))
+            (is (nil? (mt/user-http-request :crowberto :put 204 "ee/caching/"
+                                            {:model    "collection"
+                                             :model_id (:id col1)
+                                             :strategy {:type "nocache" :name "col1"}})))
+            (is (nil? (mt/user-http-request :crowberto :put 204 "ee/caching/"
+                                            {:model    "dashboard"
+                                             :model_id (:id dash)
+                                             :strategy {:type "nocache" :name "dash"}})))
+            (is (nil? (mt/user-http-request :crowberto :put 204 "ee/caching/"
+                                            {:model    "question"
+                                             :model_id (:id card1)
+                                             :strategy {:type "nocache" :name "card1"}})))
+            (is (nil? (mt/user-http-request :crowberto :put 204 "ee/caching/"
+                                            {:model    "collection"
+                                             :model_id (:id col2)
+                                             :strategy {:type "nocache" :name "col2"}}))))
+
+          (testing "HTTP responds with correct listings"
+            (is (=? {:items [{:model "root"       :model_id 0}]}
+                    (mt/user-http-request :crowberto :get 200 "ee/caching/")))
+            (is (=? {:items [{:model "database"   :model_id (:id db)}]}
+                    (mt/user-http-request :crowberto :get 200 "ee/caching/" {}
+                                          :model :database)))
+            (is (=? {:items [{:model "collection" :model_id (:id col1)}]}
+                    (mt/user-http-request :crowberto :get 200 "ee/caching/" {}
+                                          :model :dashboard)))
+            (is (=? {:items [{:model "dashboard"  :model_id (:id dash)}
+                             {:model "question"   :model_id (:id card1)}
+                             {:model "collection" :model_id (:id col2)}]}
+                    (mt/user-http-request :crowberto :get 200 "ee/caching/" {}
+                                          :collection (:id col1) :model :dashboard :model :question))))
+
+          (testing "We select correct config for something from a db"
+            (testing "First card1 has own config"
+              (is (=? {:type :nocache :name "card1"}
+                      (caching/granular-cache-strategy card1 nil)))
+              (is (=? {:type :nocache :name "card1"}
+                      (caching/granular-cache-strategy card1 (:id dash)))))
+            (testing "Second card1 should hit collection or dashboard cache"
+              (is (=? {:type :nocache :name "col1"}
+                      (caching/granular-cache-strategy card2 nil)))
+              (is (=? {:type :nocache :name "dash"}
+                      (caching/granular-cache-strategy card2 (:id dash)))))
+            (testing "Third card1 hits other collection cache"
+              (is (=? {:type :nocache :name "col2"}
+                      (caching/granular-cache-strategy card3 nil))))
+            (testing "Fourth card1 is in collection with no config and hits db config"
+              (is (=? {:type :nocache :name "db"}
+                      (caching/granular-cache-strategy card4 nil))))
+            (testing "Fifth card1 targets other db and hits root config"
+              (is (=? {:type :nocache :name "root"}
+                      (caching/granular-cache-strategy card5 nil))))))))))
+
+(comment
+  (mt/with-premium-features #{:caching}
+    (mt/user-http-request :crowberto :get 200 "ee/caching/" {}
+                          ))
+
+  (mt/with-premium-features #{:cache-granular-controls}
+    (caching/granular-cache-strategy {} nil))
+  )

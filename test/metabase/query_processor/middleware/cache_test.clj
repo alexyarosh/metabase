@@ -70,7 +70,7 @@
               (respond is))
             (respond nil))))
 
-      (save-results! [this query-hash results]
+      (save-results! [this query-hash results _opts]
         (let [hex-hash (codecs/bytes->hex query-hash)]
           (swap! store assoc hex-hash {:results results
                                        :created (t/instant)})
@@ -269,7 +269,7 @@
           (is (= true
                  (i/cached-results cache/*backend* query-hash 100
                    some?))))
-        (i/save-results! cache/*backend* query-hash (byte-array [0 0 0]))
+        (i/save-results! cache/*backend* query-hash (byte-array [0 0 0]) nil)
         (testing "Invalid cache entry should be handled gracefully"
           (is (= :not-cached
                  (run-query))))))))
@@ -353,7 +353,7 @@
             (is (= avg-execution-time (query/average-execution-time-ms q-hash)))))))))
 
 (deftest insights-from-cache-test
-  (testing "Insights should work on cahced results (#12556)"
+  (testing "Insights should work on cached results (#12556)"
     (with-mock-cache [save-chan]
       (let [query (-> checkins
                       (mt/mbql-query {:breakout    [!month.date]
