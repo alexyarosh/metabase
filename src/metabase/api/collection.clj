@@ -553,7 +553,8 @@
       ;; However, this was only tested on H2 and Postgres
       (-> row
           (assoc :can_write (mi/can-write? Collection (:id row)))
-          (add-ui-location)
+          (assoc :effective_location
+                   (collection/effective-location-path (:location row) visible-collection-ids))
           (dissoc :collection_position :display :moderated_status :icon
                   :collection_preview :dataset_query :table_id :query_type :is_upload)
           update-personal-collection))))
