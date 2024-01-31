@@ -1,8 +1,10 @@
 import { useAsync } from "react-use";
+import { t } from "ttag";
 import { useSelector } from "metabase/lib/redux";
 import { CollectionsApi, UserApi } from "metabase/services";
 import { getUserIsAdmin } from "metabase/selectors/user";
 import { PERSONAL_COLLECTIONS } from "metabase/entities/collections";
+import { useCollectionQuery } from "metabase/common/hooks";
 import type { EntityPickerOptions, PickerItem } from "../../types";
 
 import { ItemList } from "./ItemList";
@@ -35,19 +37,32 @@ export const RootItemList = ({
 }: RootItemListProps) => {
   const isAdmin = useSelector(getUserIsAdmin);
 
+  const {
+    data: rootCollection,
+    isLoading: isLoadingRootCollecton,
+    error: rootCollectionError,
+  } = useCollectionQuery({ id: "root" });
+
   const { value: data, loading: isLoading } = useAsync(async () => {
     const collectionsData: PickerItem[] = [];
 
     if (options.showRootCollection || options.namespace === "snippets") {
-      const ourAnalytics = await CollectionsApi.getRoot({
-        namespace: options.namespace,
-      });
-
-      collectionsData.push({
-        ...ourAnalytics,
-        model: "collection",
-        id: "root",
-      });
+      if (rootCollection && !rootCollectionError) {
+        collectionsData.push({
+          ...rootCollection,
+          model: "collection",
+          location: "/",
+        });
+      } else if (rootCollectionError) {
+        collectionsData.push({
+          name: t`Our Analytics`,
+          id: "root",
+          description: null,
+          can_write: false,
+          model: "collection",
+          location: "/",
+        });
+      }
     }
 
     if (options.showPersonalCollections && options.namespace !== "snippets") {
@@ -66,12 +81,12 @@ export const RootItemList = ({
     }
 
     return collectionsData;
-  });
+  }, [rootCollection]);
 
   return (
     <ItemList
       items={data}
-      isLoading={isLoading}
+      isLoading={isLoading || isLoadingRootCollecton}
       onClick={onClick}
       selectedItem={selectedItem}
       folderModel={folderModel}

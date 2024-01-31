@@ -54,7 +54,7 @@ export type CollectionEssentials = Pick<
 >;
 
 export interface SearchResult {
-  id: number;
+  id: number | CollectionId;
   name: string;
   model: SearchModelType;
   description: string | null;
@@ -96,5 +96,5 @@ export interface SearchListQuery {
   offset?: number;
   collection?: CollectionId;
   filter_items_in_personal_collection?: "only" | "exclude";
-  namespace?: "snippets"
+  namespace?: "snippets";
 }

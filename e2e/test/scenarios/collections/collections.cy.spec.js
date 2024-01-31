@@ -362,13 +362,12 @@ describe("scenarios > collection defaults", () => {
         // Click to choose which collection should this question be saved to
         // eslint-disable-next-line no-unscoped-text-selectors -- deprecated usage
         cy.findByText(revokedUsersPersonalCollectionName).click();
-        popover().within(() => {
-          cy.findByText(/Collections/i);
-          cy.findByText(/My personal collection/i);
-          cy.findByText("Parent").should("not.exist");
-          cy.log("Reported failing from v0.34.3");
-          cy.findByText("Child");
-        });
+        pickEntity({ path: [revokedUsersPersonalCollectionName] });
+        pickEntity({ path: ["Our Analytics", "Child"] });
+        cy.log("Reported failing from v0.34.3");
+        cy.findByTestId("entity-picker-modal")
+          .findByText("Parent")
+          .should("not.exist");
       });
     });
 
