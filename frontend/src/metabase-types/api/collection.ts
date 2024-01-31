@@ -47,6 +47,7 @@ export interface Collection {
   is_personal?: boolean;
 
   location?: string;
+  effective_location?: string; // location with only user-accessible collections
   effective_ancestors?: Collection[];
 
   here?: CollectionContentModel[];
@@ -86,7 +87,7 @@ export interface CollectionItem {
   can_write?: boolean;
   location?: string;
   is_personal?: boolean; // TODO: need this from backend
-  'ui-logical-location'?: string; // location with only user-accessible collections
+  effective_location?: string; // location with only user-accessible collections
   getIcon: () => { name: IconName };
   getUrl: (opts?: Record<string, unknown>) => string;
   setArchived?: (isArchived: boolean) => void;

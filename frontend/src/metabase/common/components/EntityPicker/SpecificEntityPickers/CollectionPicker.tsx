@@ -103,13 +103,10 @@ export const CollectionPicker = Object.assign(CollectionPickerComponent, {
 });
 
 const getCollectionIdPath = (
-  collection: Pick<
-    CollectionItem,
-    "id" | "ui-logical-location" | "is_personal" | "location"
-  >,
+  collection: Pick<CollectionItem, "id" | "effective_location" | "is_personal">,
   isAdmin: boolean,
 ): CollectionId[] => {
-  const location = collection?.["ui-logical-location"] ?? collection?.location;
+  const location = collection?.effective_location;
   const pathFromRoot = location?.split("/").filter(Boolean).map(Number) ?? [];
 
   if (collection.is_personal) {
