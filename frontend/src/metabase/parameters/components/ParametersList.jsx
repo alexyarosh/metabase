@@ -54,6 +54,7 @@ function ParametersList({
       key={`sortable-${id}`}
       disabled={!isEditing}
       draggingStyle={{ opacity: 0.5 }}
+      role="listitem"
     >
       <ParameterWidget
         className={cx({ mb2: vertical })}

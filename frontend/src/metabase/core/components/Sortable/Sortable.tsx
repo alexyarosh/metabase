@@ -10,6 +10,7 @@ export interface SortableProps {
   children: ReactNode;
   disabled?: boolean;
   draggingStyle?: CSSProperties;
+  role?: string;
 }
 
 /**
@@ -22,6 +23,7 @@ export function Sortable({
   children,
   disabled = false,
   draggingStyle,
+  role,
 }: SortableProps) {
   const {
     attributes,
@@ -45,6 +47,7 @@ export function Sortable({
       ref={setNodeRef}
       {...attributes}
       {...listeners}
+      role={role}
     >
       {children}
     </SortableDiv>
