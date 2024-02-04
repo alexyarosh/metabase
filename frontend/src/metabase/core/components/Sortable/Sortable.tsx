@@ -23,7 +23,7 @@ export function Sortable({
   children,
   disabled = false,
   draggingStyle,
-  role,
+  role = "button",
 }: SortableProps) {
   const {
     attributes,
