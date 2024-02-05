@@ -28,13 +28,22 @@ export const NewCollectionDialog = ({
 
   const onCreateNewCollection = async ({ name }: { name: string }) => {
     await dispatch(
-      Collections.actions.create({ name, parent_id: parentCollection?.id }),
+      Collections.actions.create({
+        name,
+        parent_id:
+          parentCollection?.id === "root" ? null : parentCollection?.id,
+      }),
     );
     onClose();
   };
 
   return (
-    <Modal title="Create New" opened={isOpen} onClose={onClose}>
+    <Modal
+      title="Create New"
+      opened={isOpen}
+      onClose={onClose}
+      data-testid="create-collection-on-the-go"
+    >
       <FormProvider
         initialValues={{ name: "" }}
         onSubmit={onCreateNewCollection}

@@ -17,7 +17,7 @@ export type EntityPickerOptions = EntityPickerModalOptions &
 
 export type PickerItem = Pick<
   SearchResult,
-  "id" | "name" | "description" | "can_write" | "model" | "can_write"
+  "id" | "name" | "description" | "can_write" | "model"
 > & { location: string };
 
 export type EntityTab = React.FC<{
@@ -29,4 +29,3 @@ export type EntityTab = React.FC<{
   model: string;
   icon: IconName;
 };
-

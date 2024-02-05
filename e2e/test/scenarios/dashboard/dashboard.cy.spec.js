@@ -30,6 +30,8 @@ import {
   getTextCardDetails,
   openDashboardMenu,
   openEmbedModalFromMenu,
+  entityPickerModal,
+  collectionOnTheGoModal,
 } from "e2e/support/helpers";
 
 import { SAMPLE_DB_ID } from "e2e/support/cypress_data";
@@ -140,19 +142,32 @@ describe("scenarios > dashboard", () => {
         modal().within(() => {
           cy.findByRole("heading", { name: "New dashboard" });
           cy.findByLabelText("Name").type(NEW_DASHBOARD).blur();
-          cy.findByTestId("select-button")
+          cy.findByTestId("collection-picker-button")
             .should("have.text", "Our analytics")
             .click();
         });
-        popover().findByText("New collection").click({ force: true });
+        entityPickerModal()
+          .findByText("Create a new collection")
+          .click({ force: true });
         const NEW_COLLECTION = "Bar";
-        modal().within(() => {
-          cy.findByRole("heading", { name: "New collection" });
-          cy.findByLabelText("Name").type(NEW_COLLECTION).blur();
-          cy.button("Create").click();
+        collectionOnTheGoModal().within(() => {
+          cy.findByText("Create New");
+          cy.findByLabelText(/Name of new folder/)
+            .type(NEW_COLLECTION)
+            .blur();
+          cy.findByText("Create").click();
           cy.wait("@createCollection");
+        });
+        entityPickerModal().within(() => {
+          cy.findByText(NEW_COLLECTION).click();
+          cy.button("Select").click();
+        });
+        modal().within(() => {
           cy.findByText("New dashboard");
-          cy.findByTestId("select-button").should("have.text", NEW_COLLECTION);
+          cy.findByTestId("collection-picker-button").should(
+            "have.text",
+            NEW_COLLECTION,
+          );
           cy.button("Create").click();
         });
         saveDashboard();

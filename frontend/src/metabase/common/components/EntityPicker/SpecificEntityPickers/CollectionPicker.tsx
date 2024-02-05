@@ -40,7 +40,7 @@ const CollectionPickerComponent = ({
   );
 
   const { data: currentCollection, isLoading: loadingCurrentCollection } =
-    useCollectionQuery({ id: value?.id, enabled: !!value?.id });
+    useCollectionQuery({ id: value?.id || "root", enabled: !!value?.id });
 
   const userPersonalCollectionId = useSelector(getUserPersonalCollectionId);
 
