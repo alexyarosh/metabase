@@ -313,7 +313,6 @@ function Widget({
         parameters={parameters}
         question={question}
         dashboard={dashboard}
-        placeholder={placeholder}
         value={normalizedValue}
         fields={parameter.fields}
         setValue={setValueOrDefault}
