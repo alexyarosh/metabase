@@ -278,7 +278,13 @@ function Widget({
   if (isDateParameter(parameter)) {
     const DateWidget = DATE_WIDGETS[parameter.type];
     return (
-      <DateWidget value={value} setValue={setValue} onClose={onPopoverClose} />
+      <DateWidget
+        value={value}
+        defaultValue={parameter.default}
+        required={parameter.required}
+        setValue={setValue}
+        onClose={onPopoverClose}
+      />
     );
   }
 
