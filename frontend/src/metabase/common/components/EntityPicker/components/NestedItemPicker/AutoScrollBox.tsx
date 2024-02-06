@@ -8,7 +8,7 @@ const gradualScroll = (container: HTMLDivElement | null) => {
     return;
   }
   const intervalId = setInterval(() => {
-    if (container.scrollLeft + container.clientWidth <= container.scrollWidth) {
+    if (container.scrollLeft + container.clientWidth < container.scrollWidth) {
       container.scrollLeft += 25;
     } else {
       clearInterval(intervalId);
