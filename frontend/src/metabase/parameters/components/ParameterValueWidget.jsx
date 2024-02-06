@@ -330,6 +330,7 @@ function Widget({
       placeholder={isEditing ? t`Enter a default value…` : undefined}
       arity={getStringParameterArity(parameter)}
       label={getParameterWidgetTitle(parameter)}
+      parameter={parameter}
     />
   );
 }
