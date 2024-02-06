@@ -61,7 +61,11 @@ export function EntityPickerModal({
 
   const handleItemSelect = useCallback(
     (item: SearchResult) => {
-      options.hasConfirmButtons ? setSelectedItem(item) : onChange(item);
+      if (options.hasConfirmButtons) {
+        setSelectedItem(item);
+      } else {
+        onChange(item);
+      }
     },
     [onChange, options],
   );
