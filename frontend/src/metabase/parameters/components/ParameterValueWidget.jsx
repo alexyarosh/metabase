@@ -280,7 +280,9 @@ function Widget({
     return (
       <DateWidget value={value} setValue={setValue} onClose={onPopoverClose} />
     );
-  } else if (isTextWidget(parameter)) {
+  }
+
+  if (isTextWidget(parameter)) {
     return (
       <TextWidget
         value={value}
@@ -292,7 +294,9 @@ function Widget({
         focusChanged={onFocusChanged}
       />
     );
-  } else if (isNumberParameter(parameter)) {
+  }
+
+  if (isNumberParameter(parameter)) {
     const arity = getNumberParameterArity(parameter);
     return (
       <NumberInputWidget
@@ -306,7 +310,9 @@ function Widget({
         parameter={parameter}
       />
     );
-  } else if (isFieldWidget(parameter)) {
+  }
+
+  if (isFieldWidget(parameter)) {
     return (
       <ParameterFieldWidget
         target={target}
