@@ -53,6 +53,26 @@ const CollectionPickerComponent = ({
     onItemSelect(folder);
   };
 
+  useEffect(() => {
+    if (currentCollection?.id !== undefined) {
+      onItemSelect({
+        name: currentCollection?.name,
+        id: currentCollection?.id,
+        description: currentCollection?.description,
+        model: "collection",
+        can_write: currentCollection?.can_write,
+        location: currentCollection?.location || "/",
+      });
+    }
+  }, [
+    currentCollection?.name,
+    currentCollection?.id,
+    currentCollection?.can_write,
+    currentCollection?.description,
+    currentCollection?.location,
+    onItemSelect,
+  ]);
+
   useEffect(
     function setInitialPath() {
       if (currentCollection?.id) {
