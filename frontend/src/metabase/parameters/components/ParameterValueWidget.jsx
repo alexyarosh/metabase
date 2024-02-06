@@ -303,6 +303,7 @@ function Widget({
         autoFocus
         placeholder={isEditing ? t`Enter a default value…` : undefined}
         label={getParameterWidgetTitle(parameter)}
+        parameter={parameter}
       />
     );
   } else if (isFieldWidget(parameter)) {
