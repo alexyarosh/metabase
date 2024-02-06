@@ -1,5 +1,4 @@
 import { t } from "ttag";
-import type { Parameter } from "metabase-types/api";
 import { areParameterValuesIdentical } from "metabase-lib/parameters/utils/parameter-values";
 
 const UPDATE = t`Update filter`;
@@ -17,13 +16,14 @@ const RESET = t`Reset to default`;
 export function getUpdateButtonProps(
   value: unknown,
   unsavedValue: unknown,
-  parameter: Parameter,
+  defaultValue?: unknown,
+  required?: boolean,
 ): { label: string; disabled: boolean } {
-  if (parameter.required) {
+  if (required) {
     return {
       label:
         !hasValue(unsavedValue) ||
-        areParameterValuesIdentical(unsavedValue, parameter.default)
+        areParameterValuesIdentical(unsavedValue, defaultValue)
           ? RESET
           : UPDATE,
       disabled:
@@ -32,9 +32,9 @@ export function getUpdateButtonProps(
     };
   }
 
-  if (hasValue(parameter.default)) {
+  if (hasValue(defaultValue)) {
     return {
-      label: areParameterValuesIdentical(unsavedValue, parameter.default)
+      label: areParameterValuesIdentical(unsavedValue, defaultValue)
         ? RESET
         : UPDATE,
       disabled: areParameterValuesIdentical(value, unsavedValue),

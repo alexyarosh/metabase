@@ -53,7 +53,8 @@ function StringInputWidget({
   const { label: buttonLabel, disabled: buttonDisabled } = getUpdateButtonProps(
     value,
     unsavedArrayValue,
-    parameter,
+    parameter.default,
+    parameter.required,
   );
 
   return (

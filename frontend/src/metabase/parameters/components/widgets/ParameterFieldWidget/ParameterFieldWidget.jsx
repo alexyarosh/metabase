@@ -60,7 +60,8 @@ export default function ParameterFieldWidget({
   const { label: buttonLabel, disabled: buttonDisabled } = getUpdateButtonProps(
     value,
     unsavedValue,
-    parameter,
+    parameter.default,
+    parameter.required,
   );
 
   return (
