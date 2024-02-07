@@ -32,7 +32,7 @@
       (perms.test-util/with-no-data-perms-for-all-users!
         (perms.test-util/with-restored-perms!
           (perms.test-util/with-restored-data-perms!
-            (u/ignore-exceptions (@#'perms/update-group-permissions! all-users-group-id graph))
+            (@#'perms/update-group-permissions! all-users-group-id graph)
             (data-perms.graph/update-data-perms-graph! {all-users-group-id graph})
             (f)))))))
 
@@ -728,7 +728,7 @@
                         clojure.lang.ExceptionInfo
                         #"You don't have permissions to do that\."
                         (upload-csv!)))))
-              (with-all-users-data-perms! {db-id {:data {:native :write, :schemas {"not_public" :all}}}}
+              (with-all-users-data-perms! {db-id {:data {:native :none, :schemas {"not_public" :all}}}}
                 (is (some? (upload-csv!)))))))))))
 
 (deftest append-csv-data-perms-test
@@ -736,7 +736,13 @@
     (if (driver/database-supports? driver/*driver* :schemas (mt/db))
       (testing "CSV appends should be blocked without data access to the schema"
         (mt/with-empty-db
-          (jdbc/execute! (sql-jdbc.conn/db->pooled-connection-spec (mt/db)) "CREATE SCHEMA IF NOT EXISTS \"not_public\";")
+          (let [conn-spec (sql-jdbc.conn/db->pooled-connection-spec (mt/db))]
+            (doseq [stmt ["CREATE SCHEMA IF NOT EXISTS \"not_public\";"
+                          "CREATE SCHEMA IF NOT EXISTS \"public\";"
+                          ;; create a public table
+                          (format "CREATE TABLE \"public\".\"%s\" (id INTEGER);" (mt/random-name))]]
+              (jdbc/execute! conn-spec stmt)))
+          (sync/sync-database! (mt/db))
           (let [db-id       (u/the-id (mt/db))
                 table-a     (upload-test/create-upload-table! :schema-name "not_public")
                 table-b     (upload-test/create-upload-table! :schema-name "not_public")
@@ -789,17 +795,12 @@
               append-csv! #(upload-test/append-csv-with-defaults!
                             :table-id (:id table-a)
                             :user-id (mt/user->id :rasta))]
-          (doseq [[perms                              can-append? test-string]
-                  [[{:native :none,  :schemas :block} false       "With blocked perms it should fail"]
-                   [{:native :write, :schemas :block} true        "With native query editing and blocked perms it should succeed"]]]
-            (testing test-string
-              (with-all-users-data-perms! {db-id {:data perms}}
-                (if can-append?
-                  (is (some? (append-csv!)))
-                  (is (thrown-with-msg?
-                       clojure.lang.ExceptionInfo
-                       #"You don't have permissions to do that\."
-                       (append-csv!))))))))))))
+          (testing "With blocked perms it should fail"
+            (with-all-users-data-perms! {db-id {:data {:native :none,  :schemas :block}}}
+              (is (thrown-with-msg?
+                   clojure.lang.ExceptionInfo
+                   #"You don't have permissions to do that\."
+                   (append-csv!))))))))))
 
 (deftest get-database-can-upload-test
   (mt/test-drivers (mt/normal-drivers-with-feature :uploads :schemas)
