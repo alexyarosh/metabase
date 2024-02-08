@@ -193,3 +193,8 @@
   (let [sql (driver.sql/set-role-statement driver role)]
     (with-open [stmt (.createStatement ^Connection conn)]
       (.execute stmt sql))))
+
+(defmethod driver/current-user-table-privileges :sql-jdbc
+  [_driver database]
+  (sql-jdbc.sync.interface/current-user-table-privileges
+    (sql-jdbc.conn/db->pooled-connection-spec database)))

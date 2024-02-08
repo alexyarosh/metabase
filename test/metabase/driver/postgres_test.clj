@@ -18,6 +18,7 @@
    [metabase.driver.sql-jdbc.connection :as sql-jdbc.conn]
    [metabase.driver.sql-jdbc.execute :as sql-jdbc.execute]
    [metabase.driver.sql-jdbc.sync :as sql-jdbc.sync]
+   [metabase.driver.sql-jdbc.sync.interface :as sql-jdbc.sync.interface]
    [metabase.driver.sql.query-processor :as sql.qp]
    [metabase.driver.sql.query-processor-test-util :as sql.qp-test-util]
    [metabase.lib.test-metadata :as meta]
@@ -1240,7 +1241,7 @@
                                (sql-jdbc.conn/with-connection-spec-for-testing-connection
                                  [spec [:postgres (assoc (:details (mt/db)) :user "privilege_rows_test_example_role")]]
                                  (with-redefs [sql-jdbc.conn/db->pooled-connection-spec (fn [_] spec)]
-                                   (set (driver/current-user-table-privileges driver/*driver* spec)))))]
+                                   (set (sql-jdbc.sync.interface/current-user-table-privileges driver/*driver* spec)))))]
           (try
            (jdbc/execute! conn-spec (str
                                      "DROP SCHEMA IF EXISTS \"dotted.schema\" CASCADE;"
