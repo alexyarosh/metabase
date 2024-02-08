@@ -26,15 +26,15 @@ title: Driver interface changelog
   `metabase.driver.sql.query-processor/honey-sql-version` is now deprecated and no longer called. All drivers are
   assumed to use Honey SQL 2.
 
-- The multimethod `metabase.driver.sql-jdbc.sync.interface/current-user-table-privileges` has been added. This should
-  be used instead of the corresponding `metabase.driver` multimethod for all JDBC-based drivers that want to leverage
-  the built-in JDBC implementation of `describe-database`.
-
 - The method `metabase.driver.sql.parameters.substitution/align-temporal-unit-with-param-type` is now deprecated.
   Use `metabase.driver.sql.parameters.substitution/align-temporal-unit-with-param-type-and-value` instead,
   which has access to `value` and therefore provides more flexibility for choosing the right conversion unit.
 
 ## Metabase 0.48.0
+
+- The multimethod `metabase.driver.sql-jdbc.sync.interface/current-user-table-privileges` has been added. All JDBC-
+  based drivers should implement this instead of the corresponding `metabase.driver` multimethod if they want to
+  leverage the built-in JDBC implementation of `metabase.driver/describe-database`.
 
 - The MBQL schema in `metabase.mbql.schema` now uses [Malli](https://github.com/metosin/malli) instead of
   [Schema](https://github.com/plumatic/schema). If you were using this namespace in combination with Schema, you'll
