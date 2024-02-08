@@ -14,7 +14,6 @@ import type {
   DependentMetadataItem,
   ExpressionClause,
   Filter,
-  Join,
   TableId,
   StructuredDatasetQuery,
   StructuredQuery as StructuredQueryObject,
@@ -91,10 +90,6 @@ export interface SegmentOption {
   filter: ["segment", number];
   icon: string;
   query: StructuredQuery;
-}
-
-function unwrapJoin(join: Join | JoinWrapper): Join {
-  return join instanceof JoinWrapper ? join.raw() : join;
 }
 
 /**
@@ -250,13 +245,6 @@ class StructuredQuery extends AtomicQuery {
    */
   filter(filter: Filter | FilterWrapper) {
     return this.addFilter(filter);
-  }
-
-  /**
-   * @deprecated use metabase-lib v2 to manage joins
-   */
-  join(join) {
-    return this._updateQuery(Q.addJoin, [unwrapJoin(join)]);
   }
 
   // JOINS
