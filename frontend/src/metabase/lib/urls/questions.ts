@@ -48,7 +48,9 @@ export function question(
   }
 
   const isModel = card?.dataset || card?.model === "dataset";
-  let path = isModel ? "model" : "question";
+  const entity = isModel ? "model" : "question";
+
+  let path: string = card?.type ?? entity;
   if (!card || !card.id) {
     return `/${path}${query}${hash}`;
   }
