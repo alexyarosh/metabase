@@ -16,7 +16,6 @@ import {
   DescriptionDivider,
   DescriptionSection,
   LoadingSection,
-  ModerationIcon,
   ResultNameSection,
   ResultTitle,
   SearchResultContainer,
@@ -24,6 +23,7 @@ import {
   XRayButton,
   XRaySection,
 } from "./SearchResult.styled";
+import { PLUGIN_MODERATION } from "metabase/plugins";
 
 export function SearchResult({
   result,
@@ -109,7 +109,11 @@ export function SearchResult({
           >
             {name}
           </ResultTitle>
-          <ModerationIcon status={moderated_status} filled size={14} />
+          <PLUGIN_MODERATION.ModerationStatusIcon
+            status={moderated_status}
+            filled
+            size={14}
+          />
         </Group>
         <InfoText showLinks={!onClick} result={result} isCompact={compact} />
       </ResultNameSection>

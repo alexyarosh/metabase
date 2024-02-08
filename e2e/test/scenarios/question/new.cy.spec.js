@@ -12,6 +12,8 @@ import {
   setTokenFeatures,
   describeOSS,
   queryBuilderHeader,
+  entityPickerModal,
+  collectionOnTheGoModal,
 } from "e2e/support/helpers";
 
 import { SAMPLE_DB_ID, USERS } from "e2e/support/cypress_data";
@@ -279,7 +281,10 @@ describe("scenarios > question > new", () => {
       cy.findByText("Save").click();
     });
     modal().within(() => {
-      cy.findByTestId("select-button").should("have.text", "Third collection");
+      cy.findByLabelText(/Which collection/).should(
+        "have.text",
+        "Third collection",
+      );
     });
   });
 
@@ -293,13 +298,18 @@ describe("scenarios > question > new", () => {
       cy.findByText("Orders").click();
     });
     cy.findByTestId("qb-header").findByText("Save").click();
-    modal().findByTestId("select-button").click();
-    popover().findByText("New collection").click();
+    modal()
+      .findByLabelText(/Which collection/)
+      .click();
+    entityPickerModal().findByText("Create a new collection").click();
 
     const NEW_COLLECTION = "Foo";
-    modal().within(() => {
-      cy.findByLabelText("Name").type(NEW_COLLECTION);
+    collectionOnTheGoModal().within(() => {
+      cy.findByLabelText(/Name of new folder/).type(NEW_COLLECTION);
       cy.findByText("Create").click();
+    });
+    entityPickerModal().findByText("Select").click();
+    modal().within(() => {
       cy.findByText("Save new question");
       cy.findByTestId("select-button").should("have.text", NEW_COLLECTION);
       cy.findByText("Save").click();

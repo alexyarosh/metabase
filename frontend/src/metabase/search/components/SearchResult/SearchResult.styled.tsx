@@ -84,7 +84,7 @@ export const ResultNameSection = styled(Stack)`
   overflow: hidden;
 `;
 
-export const ModerationIcon = styled(ModerationStatusIcon)`
+export const ModerationIcon = styled(PLUGIN_MODERATION.ModerationStatusIcon)`
   overflow: unset;
 `;
 
