@@ -10,12 +10,13 @@ import * as Urls from "metabase/lib/urls";
 
 import Link from "metabase/core/components/Link";
 import LoadingAndErrorWrapper from "metabase/components/LoadingAndErrorWrapper";
+import Search from "metabase/entities/search";
 
 import type { useSearchListQuery } from "metabase/common/hooks";
 
 import { Box, Group, Icon, Text, Title } from "metabase/ui";
 import NoResults from "assets/img/no_results.svg";
-import { useSelector } from "metabase/lib/redux";
+import { useDispatch, useSelector } from "metabase/lib/redux";
 import { getLocale } from "metabase/setup/selectors";
 import { isInstanceAnalyticsCollection } from "metabase/collections/utils";
 import { color } from "metabase/lib/colors";
@@ -168,12 +169,17 @@ const CollectionHeader = ({
   collection: CollectionEssentials;
   id: string;
 }) => {
+  const dispatch = useDispatch();
+  const wrappable = { ...collection, model: "collection" };
+  const wrappedCollection = Search.wrapEntity(wrappable, dispatch);
+  const icon = wrappedCollection.getIcon();
+
   return (
     <CollectionHeaderContainer id={id} role="heading">
       <CollectionHeaderGroup grow noWrap>
         <CollectionHeaderLink to={Urls.collection(collection)}>
           <Group spacing=".25rem">
-            <Icon name="folder" color="text-dark" size={16} />
+            <Icon {...icon} />
             <Text weight="bold" color="text-medium">
               {getCollectionName(collection)}
             </Text>
