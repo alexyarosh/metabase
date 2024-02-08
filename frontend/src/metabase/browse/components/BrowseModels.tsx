@@ -184,6 +184,8 @@ const ModelCell = ({ model, collectionHtmlId }: ModelCellProps) => {
   const lastEditorFullName =
     model.last_editor_common_name ?? model.creator_common_name;
   const timestamp = model.last_edited_at ?? model.created_at ?? "";
+  Search.wrapEntity
+  const icon =
 
   return (
     <Link
@@ -193,15 +195,7 @@ const ModelCell = ({ model, collectionHtmlId }: ModelCellProps) => {
     >
       <ModelCard>
         <Box mb="auto">
-          {model.moderated_status === "verified" ? (
-            <div>
-              {/* TODO: Implement an icon stack */}
-              <Icon name="model" size={20} className="text-brand" />
-              <Icon name="verified_filled" size={10} className="text-brand" />
-            </div>
-          ) : (
-            <Icon name="model" size={20} className="text-brand" />
-          )}
+          <Icon {...icon} size={20} className="text-brand" />
         </Box>
         <Title className="text-wrap" lh="1rem" mb=".25rem" size="1rem">
           <MultilineEllipsified tooltipMaxWidth="20rem" id={headingId}>
