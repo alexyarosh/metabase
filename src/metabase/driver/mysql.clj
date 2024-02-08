@@ -86,6 +86,11 @@
   [database]
   (-> database :dbms_version :flavor (= "MariaDB")))
 
+(defn mariadb-connection?
+  "Returns true if the database is MariaDB."
+  [driver conn]
+  (->> conn (sql-jdbc.sync/dbms-version driver) :flavor (= "MariaDB")))
+
 (defmethod driver/database-supports? [:mysql :table-privileges]
   [_driver _feat _db]
   ;; Disabled completely due to errors when dealing with partial revokes (metabase#38499)
@@ -875,18 +880,15 @@
           table-names)))
 
 (defmethod driver/current-user-table-privileges :mysql
-  [_driver database]
+  [driver conn]
   ;; MariaDB doesn't allow users to query the privileges of roles a user might have (unless they have select privileges
   ;; for the mysql database), so we can't query the full privileges of the current user.
-  (when-not (mariadb? database)
-    (let [conn-spec   (sql-jdbc.conn/db->pooled-connection-spec database)
-          db-name     (or (get-in database [:details :db])
-                          ;; some tests are stil using dbname
-                          (get-in database [:details :dbname]))
-          table-names (->> (jdbc/query conn-spec "SHOW TABLES" {:as-arrays? true})
+  (when-not (mariadb-connection? driver conn)
+    (let [db-name     (ffirst (jdbc/query conn "SELECT DATABASE()"))
+          table-names (->> (jdbc/query conn "SHOW TABLES" {:as-arrays? true})
                            (drop 1)
                            (map first))]
-      (for [[table-name privileges] (table-names->privileges (privilege-grants-for-user conn-spec "CURRENT_USER()")
+      (for [[table-name privileges] (table-names->privileges (privilege-grants-for-user conn "CURRENT_USER()")
                                                              db-name
                                                              table-names)]
         {:role   nil

@@ -164,7 +164,7 @@
 
 (deftest supports-table-privileges-matches-implementations-test
   (mt/test-drivers (mt/normal-drivers-with-feature :table-privileges)
-    (is (some? (driver/current-user-table-privileges driver/*driver* (mt/db))))))
+    (is (some? (driver/current-user-table-privileges driver/*driver* (.getConnection (mt/db)))))))
 
 (deftest nonsql-dialects-return-original-query-test
   (mt/test-driver :mongo
