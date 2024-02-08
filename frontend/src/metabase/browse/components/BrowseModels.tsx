@@ -97,6 +97,9 @@ export const BrowseModels = ({
   );
 };
 
+const isVerified = (model: SearchResult) =>
+  model.moderated_status === "verified";
+
 const ModelGroup = ({
   models,
   localeCode,
@@ -105,6 +108,23 @@ const ModelGroup = ({
   localeCode: string | undefined;
 }) => {
   const sortedModels = models.sort((a, b) => {
+    const aVerified = isVerified(a);
+    const bVerified = isVerified(b);
+
+    // Sort verified models first
+    if (aVerified && !bVerified) {
+      return -1;
+    }
+    if (!aVerified && bVerified) {
+      return 1;
+    }
+
+    if (a.name && !b.name) {
+      return -1;
+    }
+    if (!a.name && !b.name) {
+      return 0;
+    }
     if (!a.name && b.name) {
       return 1;
     }
@@ -154,9 +174,6 @@ const ModelCell = ({ model, collectionHtmlId }: ModelCellProps) => {
     model.last_editor_common_name ?? model.creator_common_name;
   const timestamp = model.last_edited_at ?? model.created_at ?? "";
 
-  // const noDescription = c(
-  //   "Indicates that a model has no description associated with it",
-  // ).t`No description.`;
   return (
     <Link
       aria-labelledby={`${collectionHtmlId} ${headingId}`}
@@ -166,7 +183,11 @@ const ModelCell = ({ model, collectionHtmlId }: ModelCellProps) => {
       <ModelCard>
         <Box mb="auto">
           {model.moderated_status === "verified" ? (
-            <></>
+            <div>
+              {/* TODO: Implement an icon stack */}
+              <Icon name="model" size={20} className="text-brand" />
+              <Icon name="verified_filled" size={10} className="text-brand" />
+            </div>
           ) : (
             <Icon name="model" size={20} className="text-brand" />
           )}

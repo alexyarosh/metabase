@@ -29,14 +29,14 @@ export const groupModels = (
     getCollectionIdForSorting(model.collection),
   );
   const groupsOfModels: SearchResult[][] = Object.values(groupedModels);
-  const sortFunction = (a: SearchResult[], b: SearchResult[]) => {
+  const sortGroupsByCollection = (a: SearchResult[], b: SearchResult[]) => {
     const collection1 = a[0].collection;
     const collection2 = b[0].collection;
     const name1 = getCollectionName(collection1);
     const name2 = getCollectionName(collection2);
     return name1.localeCompare(name2, locale);
   };
-  groupsOfModels.sort(sortFunction);
+  groupsOfModels.sort(sortGroupsByCollection);
   return groupsOfModels;
 };
 
