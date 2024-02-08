@@ -176,7 +176,7 @@ const CollectionHeader = ({
 
   return (
     <CollectionHeaderContainer id={id} role="heading">
-      <CollectionHeaderGroup grow noWrap>
+      <CollectionHeaderGroup noWrap>
         <CollectionHeaderLink to={Urls.collection(collection)}>
           <Group spacing=".25rem">
             <Icon {...icon} />
