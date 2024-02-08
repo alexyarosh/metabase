@@ -86,8 +86,6 @@ export { getFilterClause } from "./filter";
 // JOIN
 
 export const getJoins = query => J.getJoins(query.joins);
-export const addJoin = (query, join) =>
-  setJoinClause(query, J.addJoin(query.joins, join));
 
 // ORDER_BY
 
@@ -166,9 +164,7 @@ function setBreakoutClause(query, breakoutClause) {
 function setFilterClause(query, filterClause) {
   return setClause("filter", query, filterClause);
 }
-function setJoinClause(query, joinClause) {
-  return setClause("joins", query, joinClause);
-}
+
 function setOrderByClause(query, orderByClause) {
   return setClause("order-by", query, orderByClause);
 }
