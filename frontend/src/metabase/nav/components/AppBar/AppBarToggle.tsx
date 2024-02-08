@@ -28,6 +28,7 @@ export function AppBarToggle({
       disabled={isSmallAppBar}
       withArrow
       offset={-12}
+      openDelay={1000}
     >
       <SidebarButton
         isSmallAppBar={isSmallAppBar}
