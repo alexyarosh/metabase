@@ -6,9 +6,7 @@ title: Driver interface changelog
 
 ## Metabase 0.49.0
 
-- The multimethod `metabase.driver.sql-jdbc.sync.interface/current-user-table-privileges` has been added. All JDBC-
-  based drivers should implement this instead of the corresponding `metabase.driver` multimethod if they want to
-  leverage the built-in JDBC implementation of `metabase.driver/describe-database`.
+- The multimethod `metabase.driver.sql-jdbc.sync.interface/current-user-table-privileges` has been added. JDBC-based drivers can implement this to improve the performance of the default SQL JDBC implementation of `metabase.driver/describe-database`. It needs to be implemented if the database supports the `:table-privileges` feature and the driver is JDBC-based.
 
 - The multimethod `metabase.driver/create-table!` can take an additional optional map with an optional key `primary-key`.
   `metabase.driver/upload-type->database-type` must also be changed, so that if
