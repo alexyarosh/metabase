@@ -6,6 +6,10 @@ title: Driver interface changelog
 
 ## Metabase 0.49.0
 
+- The multimethod `metabase.driver.sql-jdbc.sync.interface/current-user-table-privileges` has been added. All JDBC-
+  based drivers should implement this instead of the corresponding `metabase.driver` multimethod if they want to
+  leverage the built-in JDBC implementation of `metabase.driver/describe-database`.
+
 - The multimethod `metabase.driver/create-table!` can take an additional optional map with an optional key `primary-key`.
   `metabase.driver/upload-type->database-type` must also be changed, so that if
   `:metabase.upload/auto-incrementing-int-pk` is provided as the `upload-type` argument, the function should return a
@@ -31,11 +35,6 @@ title: Driver interface changelog
   which has access to `value` and therefore provides more flexibility for choosing the right conversion unit.
 
 ## Metabase 0.48.0
-
-- The multimethod `metabase.driver.sql-jdbc.sync.interface/current-user-table-privileges` has been added. All JDBC-
-  based drivers should implement this instead of the corresponding `metabase.driver` multimethod if they want to
-  leverage the built-in JDBC implementation of `metabase.driver/describe-database`.
-
 - The MBQL schema in `metabase.mbql.schema` now uses [Malli](https://github.com/metosin/malli) instead of
   [Schema](https://github.com/plumatic/schema). If you were using this namespace in combination with Schema, you'll
   want to update your code to use Malli instead.
