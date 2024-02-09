@@ -18,7 +18,6 @@
    [metabase.driver.sql-jdbc.connection :as sql-jdbc.conn]
    [metabase.driver.sql-jdbc.execute :as sql-jdbc.execute]
    [metabase.driver.sql-jdbc.sync :as sql-jdbc.sync]
-   [metabase.driver.sql-jdbc.sync.interface :as sql-jdbc.sync.interface]
    [metabase.driver.sql.query-processor :as sql.qp]
    [metabase.driver.sql.query-processor.util :as sql.qp.u]
    [metabase.driver.sql.util :as sql.u]
@@ -848,7 +847,7 @@
                         (StringReader.))]
           (.copyIn copy-manager ^String sql tsvs))))))
 
-(defmethod sql-jdbc.sync.interface/current-user-table-privileges :postgres
+(defmethod sql-jdbc.sync/current-user-table-privileges :postgres
   [_driver conn]
   ;; KNOWN LIMITATION: this won't return privileges for foreign tables, calling has_table_privilege on a foreign table
   ;; result in a operation not supported error

@@ -19,7 +19,6 @@
    [metabase.driver.sql-jdbc.connection :as sql-jdbc.conn]
    [metabase.driver.sql-jdbc.execute :as sql-jdbc.execute]
    [metabase.driver.sql-jdbc.sync :as sql-jdbc.sync]
-   [metabase.driver.sql-jdbc.sync.interface :as sql-jdbc.sync.interface]
    [metabase.driver.sql.query-processor :as sql.qp]
    [metabase.driver.sql.query-processor.util :as sql.qp.u]
    [metabase.driver.sql.util :as sql.u]
@@ -139,6 +138,26 @@
   (when ((get-method driver/can-connect? :sql-jdbc) driver details)
     (warn-on-unsupported-versions driver details)
     true))
+
+(defmethod sql-jdbc.sync/current-user-table-privileges :mysql
+  [driver conn]
+  ;; MariaDB doesn't allow users to query the privileges of roles a user might have (unless they have select privileges
+  ;; for the mysql database), so we can't query the full privileges of the current user.
+  (when-not (mariadb-connection? driver conn)
+    (let [db-name     (ffirst (jdbc/query conn "SELECT DATABASE()"))
+          table-names (->> (jdbc/query conn "SHOW TABLES" {:as-arrays? true})
+                           (drop 1)
+                           (map first))]
+      (for [[table-name privileges] (table-names->privileges (privilege-grants-for-user conn "CURRENT_USER()")
+                                                             db-name
+                                                             table-names)]
+        {:role   nil
+         :schema nil
+         :table  table-name
+         :select (contains? privileges :select)
+         :update (contains? privileges :update)
+         :insert (contains? privileges :insert)
+         :delete (contains? privileges :delete)}))))
 
 (def default-ssl-cert-details
   "Server SSL certificate chain, in PEM format."
@@ -879,23 +898,3 @@
                   (when-let [privileges (not-empty (set/union all-table-privileges (get table-privileges table-name)))]
                     [table-name privileges])))
           table-names)))
-
-(defmethod sql-jdbc.sync.interface/current-user-table-privileges :mysql
-  [driver conn]
-  ;; MariaDB doesn't allow users to query the privileges of roles a user might have (unless they have select privileges
-  ;; for the mysql database), so we can't query the full privileges of the current user.
-  (when-not (mariadb-connection? driver conn)
-    (let [db-name     (ffirst (jdbc/query conn "SELECT DATABASE()"))
-          table-names (->> (jdbc/query conn "SHOW TABLES" {:as-arrays? true})
-                           (drop 1)
-                           (map first))]
-      (for [[table-name privileges] (table-names->privileges (privilege-grants-for-user conn "CURRENT_USER()")
-                                                             db-name
-                                                             table-names)]
-        {:role   nil
-         :schema nil
-         :table  table-name
-         :select (contains? privileges :select)
-         :update (contains? privileges :update)
-         :insert (contains? privileges :insert)
-         :delete (contains? privileges :delete)}))))
