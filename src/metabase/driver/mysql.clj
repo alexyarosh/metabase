@@ -139,6 +139,9 @@
     (warn-on-unsupported-versions driver details)
     true))
 
+(declare table-names->privileges)
+(declare privilege-grants-for-user)
+
 (defmethod sql-jdbc.sync/current-user-table-privileges :mysql
   [driver conn & {:as _options}]
   ;; MariaDB doesn't allow users to query the privileges of roles a user might have (unless they have select privileges
