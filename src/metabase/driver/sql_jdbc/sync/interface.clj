@@ -121,6 +121,6 @@
    Either:
    (1) role is null, corresponding to the privileges of the DB connection's current user
    (2) role is not null, corresponding to the privileges of the role"
-  {:added "0.49.0" :arglists '([driver ^java.sql.Connection connection])}
+  {:added "0.49.0" :arglists '([driver ^java.sql.Connection connection & args])}
   driver/dispatch-on-initialized-driver
   :hierarchy #'driver/hierarchy)
