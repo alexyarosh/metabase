@@ -1,9 +1,15 @@
 import { useMemo } from "react";
 import { t } from "ttag";
-import CheckBox from "metabase/core/components/CheckBox";
-import { StackedCheckBox } from "metabase/components/StackedCheckBox";
+import type { CheckboxProps } from "metabase/ui";
+import { Checkbox } from "metabase/ui";
 import * as Lib from "metabase-lib";
-import { ToggleItem, ColumnItem } from "./FieldPicker.styled";
+import {
+  ToggleItem,
+  ColumnItem,
+  ItemTitle,
+  StackedRoot,
+  StackedBackground,
+} from "./FieldPicker.styled";
 
 interface FieldPickerProps {
   query: Lib.Query;
@@ -61,24 +67,37 @@ export const FieldPicker = ({
   return (
     <ul data-testid={props["data-testid"]}>
       <ToggleItem>
-        <StackedCheckBox
-          className=""
-          label={isAll ? t`Select none` : t`Select all`}
-          checked={isAll}
-          indeterminate={!isAll && !isNone}
-          onChange={handleLabelToggle}
-        />
+        <label>
+          <StackedCheckbox
+            checked={isAll}
+            indeterminate={!isAll && !isNone}
+            onChange={handleLabelToggle}
+          />
+          <ItemTitle>{isAll ? t`Select none` : t`Select all`}</ItemTitle>
+        </label>
       </ToggleItem>
       {items.map((item, index) => (
         <ColumnItem key={item.longDisplayName}>
-          <CheckBox
-            checked={isColumnSelected(item.column)}
-            label={item.displayName}
-            disabled={isColumnSelected(item.column) && isDisabledDeselection}
-            onChange={event => onToggle(index, event.target.checked)}
-          />
+          <label>
+            <Checkbox
+              checked={isColumnSelected(item.column)}
+              disabled={isColumnSelected(item.column) && isDisabledDeselection}
+              onChange={event => onToggle(index, event.target.checked)}
+            />
+
+            <ItemTitle>{item.displayName}</ItemTitle>
+          </label>
         </ColumnItem>
       ))}
     </ul>
   );
 };
+
+function StackedCheckbox(props: CheckboxProps) {
+  return (
+    <StackedRoot>
+      <StackedBackground checked={props.checked} />
+      <Checkbox {...props} />
+    </StackedRoot>
+  );
+}
