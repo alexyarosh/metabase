@@ -1,20 +1,27 @@
 import styled from "@emotion/styled";
-import { color } from "metabase/lib/colors";
+import { FieldInfoIcon } from "metabase/components/MetadataInfo/FieldInfoIcon";
+import { color, alpha, darken } from "metabase/lib/colors";
+import { Icon } from "metabase/ui";
 
 export const ItemTitle = styled.div`
   min-width: 10ch;
-  margin-left: 1em;
 `;
 
 export const ColumnItem = styled.li`
-  position: relative;
+  &:first-child {
+    margin-top: 0.5em;
+  }
+  &:last-child {
+    margin-bottom: 0.5em;
+  }
 
   label {
+    position: relative;
     display: flex;
     align-items: center;
-    margin: 0.5em;
+    margin: 0.25em 0.5em;
     padding: 0.5em;
-    padding-right: 3em;
+    padding-right: 4em;
     border-radius: 6px;
     cursor: pointer;
 
@@ -22,10 +29,26 @@ export const ColumnItem = styled.li`
       background: ${color("bg-medium")};
     }
   }
+
+  ${FieldInfoIcon.HoverTarget} {
+    color: ${alpha(darken(color("brand"), 0.6), 0.8)};
+    position: absolute;
+    right: 0;
+  }
+
+  &:hover {
+    ${FieldInfoIcon.HoverTarget} {
+      opacity: 0.5;
+    }
+  }
 `;
 
 export const ToggleItem = styled(ColumnItem)`
   border-bottom: 1px solid ${color("border")};
+
+  ${ItemTitle} {
+    margin-left: 0.75em;
+  }
 `;
 
 export const StackedRoot = styled.div`
@@ -47,4 +70,10 @@ export const StackedBackground = styled.div<{ checked: boolean }>`
 
   border: 1px solid rgb(147, 161, 171);
   background: ${props => (props.checked ? color("brand") : "none")};
+`;
+
+export const ItemIcon = styled(Icon)`
+  margin: 0 0.5em;
+  margin-left: 0.75em;
+  color: ${color("text-dark")};
 `;

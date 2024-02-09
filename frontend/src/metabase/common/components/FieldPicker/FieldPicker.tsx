@@ -1,12 +1,16 @@
 import { useMemo } from "react";
 import { t } from "ttag";
 import type { CheckboxProps } from "metabase/ui";
-import { Checkbox } from "metabase/ui";
+import { DelayGroup, Checkbox } from "metabase/ui";
+import { getColumnIcon } from "metabase/common/utils/columns";
+
 import * as Lib from "metabase-lib";
+import { FieldInfoIcon } from "metabase/components/MetadataInfo/FieldInfoIcon";
 import {
   ToggleItem,
   ColumnItem,
   ItemTitle,
+  ItemIcon,
   StackedRoot,
   StackedBackground,
 } from "./FieldPicker.styled";
@@ -65,31 +69,41 @@ export const FieldPicker = ({
   };
 
   return (
-    <ul data-testid={props["data-testid"]}>
-      <ToggleItem>
-        <label>
-          <StackedCheckbox
-            checked={isAll}
-            indeterminate={!isAll && !isNone}
-            onChange={handleLabelToggle}
-          />
-          <ItemTitle>{isAll ? t`Select none` : t`Select all`}</ItemTitle>
-        </label>
-      </ToggleItem>
-      {items.map((item, index) => (
-        <ColumnItem key={item.longDisplayName}>
+    <DelayGroup>
+      <ul data-testid={props["data-testid"]}>
+        <ToggleItem>
           <label>
-            <Checkbox
-              checked={isColumnSelected(item.column)}
-              disabled={isColumnSelected(item.column) && isDisabledDeselection}
-              onChange={event => onToggle(index, event.target.checked)}
+            <StackedCheckbox
+              checked={isAll}
+              indeterminate={!isAll && !isNone}
+              onChange={handleLabelToggle}
             />
-
-            <ItemTitle>{item.displayName}</ItemTitle>
+            <ItemTitle>{isAll ? t`Select none` : t`Select all`}</ItemTitle>
           </label>
-        </ColumnItem>
-      ))}
-    </ul>
+        </ToggleItem>
+        {items.map((item, index) => (
+          <ColumnItem key={item.longDisplayName}>
+            <label>
+              <Checkbox
+                checked={isColumnSelected(item.column)}
+                disabled={
+                  isColumnSelected(item.column) && isDisabledDeselection
+                }
+                onChange={event => onToggle(index, event.target.checked)}
+              />
+              <ItemIcon name={getColumnIcon(item.column)} size={18} />
+              <ItemTitle>{item.displayName}</ItemTitle>
+              <FieldInfoIcon
+                query={query}
+                stage={stageIndex}
+                column={item.column}
+                position="right"
+              />
+            </label>
+          </ColumnItem>
+        ))}
+      </ul>
+    </DelayGroup>
   );
 };
 
