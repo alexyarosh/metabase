@@ -393,12 +393,12 @@
   ((get-method driver/insert-into! :sql-jdbc) driver db-id table-name column-names values))
 
 (defmethod sql-jdbc.sync/current-user-table-privileges :redshift
-  [_driver conn]
+  [_driver conn-spec]
   ;; KNOWN LIMITATION: this won't return privileges for external tables, calling has_table_privilege on an external table
   ;; result in an operation not supported error
   (->> (jdbc/query
-        conn
-        (str/join
+         conn-spec
+         (str/join
          "\n"
          ["with table_privileges as ("
           " select"

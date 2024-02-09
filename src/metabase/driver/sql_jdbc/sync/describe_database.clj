@@ -116,7 +116,7 @@
 
 (defn- schema+table-with-select-privileges
   [driver conn]
-  (->> (sql-jdbc.sync.interface/current-user-table-privileges driver conn)
+  (->> (sql-jdbc.sync.interface/current-user-table-privileges driver {:connection conn})
        (filter #(true? (:select %)))
        (map (fn [{:keys [schema table]}]
               [schema table]))
