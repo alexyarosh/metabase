@@ -985,6 +985,6 @@
    Either:
    (1) role is null, corresponding to the privileges of the DB connection's current user
    (2) role is not null, corresponding to the privileges of the role"
-  {:added "0.48.0", :arglists '([driver database])}
+  {:added "0.48.0", :arglists '([driver database & args])}
   dispatch-on-initialized-driver
   :hierarchy #'hierarchy)

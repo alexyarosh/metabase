@@ -848,7 +848,7 @@
           (.copyIn copy-manager ^String sql tsvs))))))
 
 (defmethod sql-jdbc.sync/current-user-table-privileges :postgres
-  [_driver conn]
+  [_driver conn & {:as _options}]
   ;; KNOWN LIMITATION: this won't return privileges for foreign tables, calling has_table_privilege on a foreign table
   ;; result in a operation not supported error
   (->> (jdbc/query

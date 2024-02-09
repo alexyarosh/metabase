@@ -194,6 +194,6 @@
       (.execute stmt sql))))
 
 (defmethod driver/current-user-table-privileges :sql-jdbc
-  [_driver database]
+  [_driver database & {:as _options}]
   (sql-jdbc.sync/current-user-table-privileges
     (sql-jdbc.conn/db->pooled-connection-spec database)))

@@ -140,7 +140,7 @@
     true))
 
 (defmethod sql-jdbc.sync/current-user-table-privileges :mysql
-  [driver conn]
+  [driver conn & {:as _options}]
   ;; MariaDB doesn't allow users to query the privileges of roles a user might have (unless they have select privileges
   ;; for the mysql database), so we can't query the full privileges of the current user.
   (when-not (mariadb-connection? driver conn)
